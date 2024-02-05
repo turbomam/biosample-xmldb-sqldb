@@ -1,7 +1,7 @@
 RUN=poetry run
 
 DOWNLOADS_FOLDER := downloads
-CHUNKS_FOLDER := data/biosample-set-xml-chunks
+CHUNKS_FOLDER := data/biosample-set-xml-chunks # todo git-ignore data/
 XML_FILE := $(DOWNLOADS_FOLDER)/biosample_set.xml.gz
 UNPACKED_FILE := $(DOWNLOADS_FOLDER)/biosample_set.xml
 
@@ -35,9 +35,7 @@ clean:
 # (interactively enter password)
 # exit
 # docker container restart basex10
-
-
-# visit localhost:8080 and load some data
+# visit localhost:8080, load some test data, and increase the memory limit to 4000 MB and the timeout to 600
 # the confirm that the new database is reported by this command
 # curl -u admin:password http://localhost:8080/rest
 
@@ -47,7 +45,9 @@ biosample-set-xml-chunks: $(UNPACKED_FILE)
 	$(RUN) python biosample_xmldb_sqldb/split_into_N_biosamples.py \
 		--input-file-name $< \
 		--output-dir $(CHUNKS_FOLDER) \
-		--biosamples-per-file 3000000
+		--biosamples-per-file 1000000 # 35x ~ 3 GB output files/databases? ~ 30 seconds per chunk # load: ~ 8 min per chunk # todo larger chunks crash load "couldn't write tmp file..."
+
+# --last-biosample 900002 # todo script crashes and last chunk isn't written
 
 BIOSAMPLE-SET-XML-CHUNK-FILES=$(shell ls data/biosample-set-xml-chunks)
 
@@ -59,4 +59,6 @@ data/biosample-set-xml-chunks/biosample_set_from_%.log: # todo doesn't actually 
 	date
 	time docker exec -it basex10 basex -c "CREATE DB $(basename $(notdir $@)) $(subst data/,basex/data/,$(subst .log,.xml,$@))"
 
-create-biosample-set-logs: $(BIOSAMPLE-SET-XML-CHUNK-LOGS)
+create-biosample-set-logs: $(BIOSAMPLE-SET-XML-CHUNK-LOGS) # 2 hours?
+
+followup:  data/biosample-set-xml-chunks/biosample_set_from_10000001.log data/biosample-set-xml-chunks/biosample_set_from_11000001.log data/biosample-set-xml-chunks/biosample_set_from_12000001.log data/biosample-set-xml-chunks/biosample_set_from_13000001.log data/biosample-set-xml-chunks/biosample_set_from_14000001.log data/biosample-set-xml-chunks/biosample_set_from_15000001.log data/biosample-set-xml-chunks/biosample_set_from_16000001.log data/biosample-set-xml-chunks/biosample_set_from_17000001.log data/biosample-set-xml-chunks/biosample_set_from_18000001.log data/biosample-set-xml-chunks/biosample_set_from_19000001.log data/biosample-set-xml-chunks/biosample_set_from_20000001.log data/biosample-set-xml-chunks/biosample_set_from_21000001.log data/biosample-set-xml-chunks/biosample_set_from_22000001.log data/biosample-set-xml-chunks/biosample_set_from_23000001.log data/biosample-set-xml-chunks/biosample_set_from_24000001.log data/biosample-set-xml-chunks/biosample_set_from_25000001.log data/biosample-set-xml-chunks/biosample_set_from_26000001.log data/biosample-set-xml-chunks/biosample_set_from_27000001.log data/biosample-set-xml-chunks/biosample_set_from_28000001.log data/biosample-set-xml-chunks/biosample_set_from_29000001.log data/biosample-set-xml-chunks/biosample_set_from_30000001.log data/biosample-set-xml-chunks/biosample_set_from_3000001.log data/biosample-set-xml-chunks/biosample_set_from_31000001.log data/biosample-set-xml-chunks/biosample_set_from_32000001.log data/biosample-set-xml-chunks/biosample_set_from_33000001.log data/biosample-set-xml-chunks/biosample_set_from_34000001.log data/biosample-set-xml-chunks/biosample_set_from_35000001.log data/biosample-set-xml-chunks/biosample_set_from_36000001.log data/biosample-set-xml-chunks/biosample_set_from_37000001.log data/biosample-set-xml-chunks/biosample_set_from_4000001.log data/biosample-set-xml-chunks/biosample_set_from_5000001.log data/biosample-set-xml-chunks/biosample_set_from_6000001.log data/biosample-set-xml-chunks/biosample_set_from_7000001.log data/biosample-set-xml-chunks/biosample_set_from_8000001.log data/biosample-set-xml-chunks/biosample_set_from_9000001.log
