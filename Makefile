@@ -28,37 +28,44 @@ clean:
 
 ## https://github.com/Quodatum/basex-docker#readme
 
-# mkdir data # skipping #chown -R 1000:1000 data
-# docker run --name basex10 -p 8080:8080 -v `pwd`/data:/srv/basex/data -d quodatum/basexhttp
-# docker exec -it basex10 /bin/sh
+# mkdir -p basex-data # skipping #chown -R 1000:1000 data
+# mkdir -p shared-data # skipping #chown -R 1000:1000 data
+# docker run --name basex10 -p 8080:8080 -v `pwd`/shared-basex-data:/srv/basex/data -v `pwd`/shared-queries:/srv/basex/shared-queries -v `pwd`/shared-results:/srv/basex/shared-results -v `pwd`/shared-chunks:/srv/basex/shared-chunks -d quodatum/basexhttp
+# docker exec -it basex10 /bin/bash
 # basex -cPASSWORD
-# (interactively enter password)
+# (interactively enter basex-password)
 # exit
 # docker container restart basex10
-# visit localhost:8080, load some test data, and increase the memory limit to 4000 MB and the timeout to 600
-# the confirm that the new database is reported by this command
-# curl -u admin:password http://localhost:8080/rest
+
+# visit localhost:8080, optionally load some test data into a new database
+# then confirm that the new database is reported by this command
+# curl -u admin:basex-password http://localhost:8080/rest
+
+.PHONY: setup-shared-dirs
+setup-shared-dirs:
+	mkdir -p shared-chunks shared-queries shared-results shared-basex-data
 
 .PHONY: biosample-set-xml-chunks
 biosample-set-xml-chunks: $(UNPACKED_FILE)
 	mkdir -p $(CHUNKS_FOLDER)
 	$(RUN) python biosample_xmldb_sqldb/split_into_N_biosamples.py \
 		--input-file-name $< \
-		--output-dir $(CHUNKS_FOLDER) \
+		--output-dir shared-chunks \
 		--biosamples-per-file 1000000 # 35x ~ 3 GB output files/databases? ~ 30 seconds per chunk # load: ~ 8 min per chunk # todo larger chunks crash load "couldn't write tmp file..."
 
 # --last-biosample 900002 # todo script crashes and last chunk isn't written
 
-BIOSAMPLE-SET-XML-CHUNK-FILES=$(shell ls data/biosample-set-xml-chunks)
+BIOSAMPLE-SET-XML-CHUNK-FILES=$(shell ls shared-chunks)
 
-BIOSAMPLE-SET-XML-CHUNK-NAMES=$(subst .xml,,$(BIOSAMPLE-SET-XML-CHUNK-FILES))
+BIOSAMPLE-SET-XML-CHUNK-NAMES=$(notdir $(basename $(BIOSAMPLE-SET-XML-CHUNK-FILES)))
 
-BIOSAMPLE-SET-XML-CHUNK-LOGS=$(addsuffix .log,$(addprefix data/biosample-set-xml-chunks/,$(BIOSAMPLE-SET-XML-CHUNK-NAMES)))
-
-data/biosample-set-xml-chunks/biosample_set_from_%.log: # todo doesn't actually do any logging yet!
+biosample_set_from_%:
+	echo $@
 	date
-	time docker exec -it basex10 basex -c "CREATE DB $(basename $(notdir $@)) $(subst data/,basex/data/,$(subst .log,.xml,$@))"
+	time docker exec -it basex10 basex -c "CREATE DB $@ basex/shared-chunks/$@.xml"
 
-create-biosample-set-logs: $(BIOSAMPLE-SET-XML-CHUNK-LOGS) # 2 hours?
+load-biosample-sets: $(BIOSAMPLE-SET-XML-CHUNK-NAMES) # 2 hours?
 
-followup:  data/biosample-set-xml-chunks/biosample_set_from_10000001.log data/biosample-set-xml-chunks/biosample_set_from_11000001.log data/biosample-set-xml-chunks/biosample_set_from_12000001.log data/biosample-set-xml-chunks/biosample_set_from_13000001.log data/biosample-set-xml-chunks/biosample_set_from_14000001.log data/biosample-set-xml-chunks/biosample_set_from_15000001.log data/biosample-set-xml-chunks/biosample_set_from_16000001.log data/biosample-set-xml-chunks/biosample_set_from_17000001.log data/biosample-set-xml-chunks/biosample_set_from_18000001.log data/biosample-set-xml-chunks/biosample_set_from_19000001.log data/biosample-set-xml-chunks/biosample_set_from_20000001.log data/biosample-set-xml-chunks/biosample_set_from_21000001.log data/biosample-set-xml-chunks/biosample_set_from_22000001.log data/biosample-set-xml-chunks/biosample_set_from_23000001.log data/biosample-set-xml-chunks/biosample_set_from_24000001.log data/biosample-set-xml-chunks/biosample_set_from_25000001.log data/biosample-set-xml-chunks/biosample_set_from_26000001.log data/biosample-set-xml-chunks/biosample_set_from_27000001.log data/biosample-set-xml-chunks/biosample_set_from_28000001.log data/biosample-set-xml-chunks/biosample_set_from_29000001.log data/biosample-set-xml-chunks/biosample_set_from_30000001.log data/biosample-set-xml-chunks/biosample_set_from_3000001.log data/biosample-set-xml-chunks/biosample_set_from_31000001.log data/biosample-set-xml-chunks/biosample_set_from_32000001.log data/biosample-set-xml-chunks/biosample_set_from_33000001.log data/biosample-set-xml-chunks/biosample_set_from_34000001.log data/biosample-set-xml-chunks/biosample_set_from_35000001.log data/biosample-set-xml-chunks/biosample_set_from_36000001.log data/biosample-set-xml-chunks/biosample_set_from_37000001.log data/biosample-set-xml-chunks/biosample_set_from_4000001.log data/biosample-set-xml-chunks/biosample_set_from_5000001.log data/biosample-set-xml-chunks/biosample_set_from_6000001.log data/biosample-set-xml-chunks/biosample_set_from_7000001.log data/biosample-set-xml-chunks/biosample_set_from_8000001.log data/biosample-set-xml-chunks/biosample_set_from_9000001.log
+PHONY: biosample_non_attribute_metadata_wide
+biosample_non_attribute_metadata_wide:
+	docker exec -it basex10 basex basex/shared-queries/$@.xq > shared-results/$@.tsv
