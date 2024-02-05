@@ -26,11 +26,25 @@ clean:
 # Declare targets as not phony
 .SECONDARY: $(XML_FILE) $(UNPACKED_FILE)
 
+
 ## https://github.com/Quodatum/basex-docker#readme
 
-# mkdir -p basex-data # skipping #chown -R 1000:1000 data
-# mkdir -p shared-data # skipping #chown -R 1000:1000 data
-# docker run --name basex10 -p 8080:8080 -v `pwd`/shared-basex-data:/srv/basex/data -v `pwd`/shared-queries:/srv/basex/shared-queries -v `pwd`/shared-results:/srv/basex/shared-results -v `pwd`/shared-chunks:/srv/basex/shared-chunks -d quodatum/basexhttp
+.PHONY: setup-shared-dirs
+setup-shared-dirs:
+	mkdir -p shared-chunks shared-queries shared-results shared-basex-data shared-postgres
+
+.PHONY: basex-up
+basex-up:
+	docker run \
+		--name basex10 \
+		-p 8080:8080 \
+		-v `pwd`/shared-basex-data:/srv/basex/data \ # skipping #chown -R 1000:1000 shared-basex-data
+		-v `pwd`/shared-queries:/srv/basex/shared-queries \
+		-v `pwd`/shared-results:/srv/basex/shared-results \
+		-v `pwd`/shared-chunks:/srv/basex/shared-chunks \
+		-v `pwd`/shared-postgres:/srv/basex/shared-chunks \
+		-d quodatum/basexhttp
+
 # docker exec -it basex10 /bin/bash
 # basex -cPASSWORD
 # (interactively enter basex-password)
@@ -41,9 +55,24 @@ clean:
 # then confirm that the new database is reported by this command
 # curl -u admin:basex-password http://localhost:8080/rest
 
-.PHONY: setup-shared-dirs
-setup-shared-dirs:
-	mkdir -p shared-chunks shared-queries shared-results shared-basex-data
+.PHONY: postgres-up
+postgres-up:
+	docker run \
+		--name mypostgres \
+		-e POSTGRES_PASSWORD=postgres-password \
+		-p 5433:5432 \
+		-v `pwd`/shared-postgres:/var/lib/postgresql/data \
+		-d postgres
+
+.PHONY: postgres-create
+postgres-create:
+	docker exec -it mypostgres psql -U postgres -c "CREATE DATABASE biosample;"
+	docker exec -it mypostgres psql -U postgres -c "CREATE USER biosample WITH PASSWORD 'biosample-password';"
+	docker exec -it mypostgres psql -U postgres -c "ALTER ROLE biosample SET client_encoding TO 'utf8';"
+	docker exec -it mypostgres psql -U postgres -c "ALTER ROLE biosample SET default_transaction_isolation TO 'read committed';"
+	docker exec -it mypostgres psql -U postgres -c "ALTER ROLE biosample SET timezone TO 'UTC';"
+	docker exec -it mypostgres psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE biosample TO biosample;"
+	docker exec -it mypostgres psql -U postgres -d biosample -c "GRANT CREATE ON SCHEMA public TO biosample;"
 
 .PHONY: biosample-set-xml-chunks
 biosample-set-xml-chunks: $(UNPACKED_FILE)
@@ -64,8 +93,26 @@ biosample_set_from_%:
 	date
 	time docker exec -it basex10 basex -c "CREATE DB $@ basex/shared-chunks/$@.xml"
 
-load-biosample-sets: $(BIOSAMPLE-SET-XML-CHUNK-NAMES) # 2 hours?
+load-biosample-sets: $(BIOSAMPLE-SET-XML-CHUNK-NAMES) # 3 hours?
 
 PHONY: biosample_non_attribute_metadata_wide
 biosample_non_attribute_metadata_wide:
 	docker exec -it basex10 basex basex/shared-queries/$@.xq > shared-results/$@.tsv
+
+# example from the host: PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample
+
+.PHONY: postgres-populate
+postgres-populate:
+	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -f sql/non_attribute_metadata.sql
+	sed -n -e :a -e '1,2!{P;N;D;};N;ba' shared-queries/biosample_non_attribute_metadata_wide.tsv > shared-queries/biosample_non_attribute_metadata_wide-minus_two_lines.tsv # basex ouput my have a few garbage lines if the queries are executed before all of the chunks are loaded into databases
+	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -c "\COPY non_attribute_metadata FROM 'shared-queries/biosample_non_attribute_metadata_wide-minus_two_lines.tsv' WITH DELIMITER E'\t' CSV HEADER;" # oops forgot to set up the shared directory
+
+
+
+
+
+
+
+
+
+
