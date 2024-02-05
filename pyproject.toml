@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "biosample-xmldb-sqldb"
+version = "0.1.0"
+description = ""
+authors = ["Mark A. Miller <MAM@lbl.gov>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+click = "^8.1.7"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+split-into-N-biosamples = "biosample_xmldb_sqldb.split_into_N_biosamples:cli"

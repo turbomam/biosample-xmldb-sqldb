@@ -1,0 +1,12 @@
+<addressbook>
+  <contact>
+    <name>John Doe</name>
+    <email>john.doe@example.com</email>
+    <phone>123-456-7890</phone>
+  </contact>
+  <contact>
+    <name>Jane Smith</name>
+    <email>jane.smith@example.com</email>
+    <phone>987-654-3210</phone>
+  </contact>
+</addressbook>
