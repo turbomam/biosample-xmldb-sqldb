@@ -55,24 +55,38 @@ basex-up:
 # then confirm that the new database is reported by this command
 # curl -u admin:basex-password http://localhost:8080/rest
 
+
+# 		-v `pwd`/shared-results:/root/shared-results \
+# -v `pwd`/shared-postgres:/var/lib/postgresql/data \
+
 .PHONY: postgres-up
 postgres-up:
+	rm -rf shared-postgres/*
+	mkdir -p shared-postgres/pg_data
+	docker rm -f biosample-postgres || true
 	docker run \
-		--name mypostgres \
-		-e POSTGRES_PASSWORD=postgres-password \
+		--name biosample-postgres \
 		-p 5433:5432 \
-		-v `pwd`/shared-postgres:/var/lib/postgresql/data \
+		-v $(shell pwd)/shared-results:/root/shared-results \
+		-v $(shell pwd)/shared-postgres/pg_data:/var/lib/postgresql/data \
+		-e POSTGRES_PASSWORD=postgres-password \
 		-d postgres
+	sleep 30
+
+# could check with
+# docker exec -it biosample-postgres /bin/bash
 
 .PHONY: postgres-create
 postgres-create:
-	docker exec -it mypostgres psql -U postgres -c "CREATE DATABASE biosample;"
-	docker exec -it mypostgres psql -U postgres -c "CREATE USER biosample WITH PASSWORD 'biosample-password';"
-	docker exec -it mypostgres psql -U postgres -c "ALTER ROLE biosample SET client_encoding TO 'utf8';"
-	docker exec -it mypostgres psql -U postgres -c "ALTER ROLE biosample SET default_transaction_isolation TO 'read committed';"
-	docker exec -it mypostgres psql -U postgres -c "ALTER ROLE biosample SET timezone TO 'UTC';"
-	docker exec -it mypostgres psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE biosample TO biosample;"
-	docker exec -it mypostgres psql -U postgres -d biosample -c "GRANT CREATE ON SCHEMA public TO biosample;"
+	docker exec -it biosample-postgres psql -U postgres -c "CREATE DATABASE biosample;"
+	docker exec -it biosample-postgres psql -U postgres -c "CREATE USER biosample WITH PASSWORD 'biosample-password';"
+	docker exec -it biosample-postgres psql -U postgres -c "ALTER ROLE biosample SET client_encoding TO 'utf8';"
+	docker exec -it biosample-postgres psql -U postgres -c "ALTER ROLE biosample SET default_transaction_isolation TO 'read committed';"
+	docker exec -it biosample-postgres psql -U postgres -c "ALTER ROLE biosample SET timezone TO 'UTC';"
+	docker exec -it biosample-postgres psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE biosample TO biosample;"
+	docker exec -it biosample-postgres psql -U postgres -d biosample -c "GRANT CREATE ON SCHEMA public TO biosample;"
+	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -f sql/non_attribute_metadata.sql
+	sleep 30
 
 .PHONY: biosample-set-xml-chunks
 biosample-set-xml-chunks: $(UNPACKED_FILE)
@@ -103,16 +117,16 @@ biosample_non_attribute_metadata_wide:
 
 .PHONY: postgres-populate
 postgres-populate:
-	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -f sql/non_attribute_metadata.sql
-	sed -n -e :a -e '1,2!{P;N;D;};N;ba' shared-queries/biosample_non_attribute_metadata_wide.tsv > shared-queries/biosample_non_attribute_metadata_wide-minus_two_lines.tsv # basex ouput my have a few garbage lines if the queries are executed before all of the chunks are loaded into databases
-	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -c "\COPY non_attribute_metadata FROM 'shared-queries/biosample_non_attribute_metadata_wide-minus_two_lines.tsv' WITH DELIMITER E'\t' CSV HEADER;" # oops forgot to set up the shared directory
+# 	sed -n -e :a -e '1,2!{P;N;D;};N;ba' shared-queries/biosample_non_attribute_metadata_wide.tsv > shared-queries/biosample_non_attribute_metadata_wide-minus_two_lines.tsv # basex ouput my have a few garbage lines if the queries are executed before all of the chunks are loaded into databases
+	PGPASSWORD=biosample-password \
+		psql \
+		-h localhost \
+		-p 5433 \
+		-U biosample \
+		-d biosample \
+		-c "\COPY non_attribute_metadata FROM 'shared-results/biosample_non_attribute_metadata_wide-minus_two_lines.tsv' WITH DELIMITER E'\t' CSV HEADER;"
 
 
-
-
-
-
-
-
-
+.PHONY: postgres-all
+postgres-all: postgres-up postgres-create postgres-populate
 

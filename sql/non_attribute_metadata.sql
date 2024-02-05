@@ -1,6 +1,6 @@
 -- non_attribute_metadata definition
 
-CREATE TABLE non_attribute_metadata(
+CREATE TABLE IF NOT EXISTS non_attribute_metadata(
   "id" TEXT,
   "accession" TEXT,
   "raw_id" INTEGER PRIMARY KEY,
