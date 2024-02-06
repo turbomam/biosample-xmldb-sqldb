@@ -107,10 +107,15 @@ biosample_set_from_%:
 	date
 	time docker exec -it basex10 basex -c "CREATE DB $@ basex/shared-chunks/$@.xml"
 
-load-biosample-sets: $(BIOSAMPLE-SET-XML-CHUNK-NAMES) # 3 hours?
+load-biosample-sets: $(BIOSAMPLE-SET-XML-CHUNK-NAMES) # 5 hours? could possibly do in parallel on a big machine
 
 PHONY: biosample_non_attribute_metadata_wide
 biosample_non_attribute_metadata_wide:
+	docker exec -it basex10 basex basex/shared-queries/$@.xq > shared-results/$@.tsv
+
+
+PHONY: all_biosample_attributes_values_by_raw_id
+all_biosample_attributes_values_by_raw_id:
 	docker exec -it basex10 basex basex/shared-queries/$@.xq > shared-results/$@.tsv
 
 # example from the host: PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample
@@ -124,7 +129,7 @@ postgres-populate:
 		-p 5433 \
 		-U biosample \
 		-d biosample \
-		-c "\COPY non_attribute_metadata FROM 'shared-results/biosample_non_attribute_metadata_wide-minus_two_lines.tsv' WITH DELIMITER E'\t' CSV HEADER;"
+		-c "\COPY non_attribute_metadata FROM 'shared-results/biosample_non_attribute_metadata_wide.tsv' WITH DELIMITER E'\t' CSV HEADER;"
 
 
 .PHONY: postgres-all
