@@ -38,26 +38,24 @@ basex-up:
 	docker run \
 		--name basex10 \
 		-p 8080:8080 \
-		-v `pwd`/shared-basex-data:/srv/basex/data \ # skipping #chown -R 1000:1000 shared-basex-data
+		-v `pwd`/shared-basex-data:/srv/basex/data \
 		-v `pwd`/shared-queries:/srv/basex/shared-queries \
 		-v `pwd`/shared-results:/srv/basex/shared-results \
 		-v `pwd`/shared-chunks:/srv/basex/shared-chunks \
-		-v `pwd`/shared-postgres:/srv/basex/shared-chunks \
 		-d quodatum/basexhttp
+	# skipping #chown -R 1000:1000 shared-basex-data
+	sleep 5
+	docker exec -it basex10 basex -c "PASSWORD basex-password"
+	sleep 5
+	docker container restart basex10
+	sleep 5
+	curl -u admin:basex-password http://localhost:8080/rest
 
-# docker exec -it basex10 /bin/bash
-# basex -cPASSWORD
-# (interactively enter basex-password)
-# exit
-# docker container restart basex10
+## basic access:
+# docker exec -it basex10 /bin/bash 
+## or
+# visit localhost:8080
 
-# visit localhost:8080, optionally load some test data into a new database
-# then confirm that the new database is reported by this command
-# curl -u admin:basex-password http://localhost:8080/rest
-
-
-# 		-v `pwd`/shared-results:/root/shared-results \
-# -v `pwd`/shared-postgres:/var/lib/postgresql/data \
 
 .PHONY: postgres-up
 postgres-up:
@@ -86,6 +84,7 @@ postgres-create:
 	docker exec -it biosample-postgres psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE biosample TO biosample;"
 	docker exec -it biosample-postgres psql -U postgres -d biosample -c "GRANT CREATE ON SCHEMA public TO biosample;"
 	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -f sql/non_attribute_metadata.sql
+	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -f sql/all_attribs.sql
 	sleep 30
 
 .PHONY: biosample-set-xml-chunks
@@ -109,20 +108,37 @@ biosample_set_from_%:
 
 load-biosample-sets: $(BIOSAMPLE-SET-XML-CHUNK-NAMES) # 5 hours? could possibly do in parallel on a big machine
 
+# docker exec -it basex10  basex -c list
+# docker exec -it basex10  basex -c "open biosample_set_from_0; info db"
+
+# docker exec -it basex10  basex -c "open biosample_set_from_0; info index"
+
+
+
 PHONY: biosample_non_attribute_metadata_wide
 biosample_non_attribute_metadata_wide:
 	docker exec -it basex10 basex basex/shared-queries/$@.xq > shared-results/$@.tsv
 
 
-PHONY: all_biosample_attributes_values_by_raw_id
-all_biosample_attributes_values_by_raw_id:
-	docker exec -it basex10 basex basex/shared-queries/$@.xq > shared-results/$@.tsv
+PHONY: all_biosample_attributes_values_by_raw_id # make sure computer doesn't go to sleep # 70 minutes
+	all_biosample_attributes_values_by_raw_id:
+	date
+	time docker exec -it basex10 basex basex/shared-queries/$@.xq > shared-results/$@.tsv
 
-# example from the host: PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample
+## psql access from the host: PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample
 
-.PHONY: postgres-populate
-postgres-populate:
-# 	sed -n -e :a -e '1,2!{P;N;D;};N;ba' shared-queries/biosample_non_attribute_metadata_wide.tsv > shared-queries/biosample_non_attribute_metadata_wide-minus_two_lines.tsv # basex ouput my have a few garbage lines if the queries are executed before all of the chunks are loaded into databases
+## dealing with incomplete data files ?
+# sed -n -e :a -e '1,2!{P;N;D;};N;ba' shared-queries/biosample_non_attribute_metadata_wide.tsv > shared-queries/biosample_non_attribute_metadata_wide-minus_two_lines.tsv # basex ouput my have a few garbage lines if the queries are executed before all of the chunks are loaded into databases
+# or 
+# psql -h localhost -p 5433 -U your_username -d your_database -c "\COPY your_table FROM 'your_csv_file.csv' WITH (FORMAT CSV, NULL 'NULL', HEADER);"
+
+
+## dump structure
+# docker exec -it biosample-postgres pg_dump -U postgres -d biosample --table=non_attribute_metadata --schema-only > non_attribute_metadata_structure.sql
+
+
+.PHONY: postgres-non-attribute
+postgres-non-attribute:
 	PGPASSWORD=biosample-password \
 		psql \
 		-h localhost \
@@ -132,6 +148,17 @@ postgres-populate:
 		-c "\COPY non_attribute_metadata FROM 'shared-results/biosample_non_attribute_metadata_wide.tsv' WITH DELIMITER E'\t' CSV HEADER;"
 
 
+.PHONY: postgres-all-attribs
+postgres-all-attribs:
+	PGPASSWORD=biosample-password \
+		psql \
+		-h localhost \
+		-p 5433 \
+		-U biosample \
+		-d biosample \
+		-c "\COPY all_attribs FROM 'shared-results/all_biosample_attributes_values_by_raw_id.tsv' WITH DELIMITER E'\t' CSV HEADER;"
+
+
 .PHONY: postgres-all
-postgres-all: postgres-up postgres-create postgres-populate
+postgres-all: postgres-up postgres-create postgres-non-attribute postgres-all-attribs
 

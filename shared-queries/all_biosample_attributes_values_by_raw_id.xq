@@ -1,36 +1,52 @@
 declare option output:method "csv";
 declare option output:csv "header=yes, separator=tab";
 
+let $delim := "|||"
+
 for $db in db:list()
   let $coll := db:open($db)
-  where fn:starts-with($db, "biosample_set_")
+  where fn:starts-with($db, "biosample_set_from")
 
-for $attrib in $coll/BioSampleSet/BioSample/Attributes/Attribute
+  for $attrib in $coll/BioSampleSet/BioSample/Attributes/Attribute
 
-let $id_val := data($attrib/../../@id)
-let $attrib_name := data($attrib/@attribute_name)
-let $hn := data($attrib/@harmonized_name)
-let $attrib_val := data($attrib)
+    let $id_val := data($attrib/../../@id)
 
-return
+    let $attrib_name := fn:normalize-space(
+      string-join(
+        data($attrib/@attribute_name),$delim
+      )
+    )
 
+    let $hn := fn:normalize-space(
+      string-join(
+        data($attrib/@harmonized_name),$delim
+      )
+    )
 
-<csv><record> 
+    let $attrib_val := fn:normalize-space(
+      string-join(
+        data($attrib),$delim
+      )
+    )
 
-<raw_id>{
-    $id_val
-}</raw_id>
+    return
 
-<attribute_name>{
-$attrib_name
-}</attribute_name>
+    <csv><record> 
 
-<harmonized_name>{
-$hn
-}</harmonized_name>
+    <raw_id>{
+      $id_val
+    }</raw_id>
 
-<value>{
-$attrib_val
-}</value>
+    <attribute_name>{
+      $attrib_name
+    }</attribute_name>
+
+    <harmonized_name>{
+      $hn
+    }</harmonized_name>
+
+    <value>{
+      $attrib_val
+    }</value>
 
 </record></csv>
