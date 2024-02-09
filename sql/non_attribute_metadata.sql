@@ -20,7 +20,5 @@ CREATE TABLE IF NOT EXISTS non_attribute_metadata(
 
 );
 
---  INTEGER PRIMARY KEY,
-
---CREATE INDEX non_attribute_metadata_raw_id_idx on non_attribute_metadata("raw_id");
+CREATE INDEX non_attribute_metadata_raw_id_idx on non_attribute_metadata("raw_id");
 

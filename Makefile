@@ -2,15 +2,19 @@ RUN=poetry run
 
 DOWNLOADS_FOLDER := downloads
 CHUNKS_FOLDER := data/biosample-set-xml-chunks
- # todo git-ignore large directories
 XML_FILE := $(DOWNLOADS_FOLDER)/biosample_set.xml.gz
 UNPACKED_FILE := $(DOWNLOADS_FOLDER)/biosample_set.xml
 
 # Default target
-.PHONY: all
-all: $(UNPACKED_FILE)
+.PHONY: all 
+	# clean
+all: setup-shared-dirs $(UNPACKED_FILE) biosample-set-xml-chunks basex-up load-biosample-sets \
+biosample_non_attribute_metadata_wide \
+all_biosample_attributes_values_by_raw_id \
+postgres-all
 
-#  biosample-set-xml-chunks create-biosample-set-logs
+
+#   create-biosample-set-logs
 
 # Target to download the file
 $(XML_FILE):
@@ -37,12 +41,15 @@ setup-shared-dirs:
 	mkdir -p shared-chunks shared-queries shared-results shared-basex-data shared-postgres downloads
 	touch shared-chunks/.gitkeep shared-queries/.gitkeep shared-results/.gitkeep shared-basex-data/.gitkeep shared-postgres/.gitkeep downloads/.gitkeep  
 
+
+## this mapping isn't working in Ubuntu
+# 		-v `pwd`/shared-basex-data:/srv/basex/data \
+
 .PHONY: basex-up
 basex-up:
 	docker run \
 		--name basex10 \
 		-p 8080:8080 \
-		-v `pwd`/shared-basex-data:/srv/basex/data \
 		-v `pwd`/shared-queries:/srv/basex/shared-queries \
 		-v `pwd`/shared-results:/srv/basex/shared-results \
 		-v `pwd`/shared-chunks:/srv/basex/shared-chunks \
@@ -92,14 +99,14 @@ postgres-create:
 	sleep 30
 
 .PHONY: biosample-set-xml-chunks
+# 1000000 biosamples-per-file -> 35x ~ 3 GB output files/databases ~ 30 seconds per chunk # loading: ~ 8 min per chunk # todo larger chunks crash load with "couldn't write tmp file..."
 biosample-set-xml-chunks: $(UNPACKED_FILE)
 	mkdir -p $(CHUNKS_FOLDER)
 	$(RUN) python biosample_xmldb_sqldb/split_into_N_biosamples.py \
 		--input-file-name $< \
 		--output-dir shared-chunks \
-		--biosamples-per-file 1000000 # 35x ~ 3 GB output files/databases? ~ 30 seconds per chunk # load: ~ 8 min per chunk # todo larger chunks crash load "couldn't write tmp file..."
-
-# --last-biosample 900002 # todo script crashes and last chunk isn't written
+		--biosamples-per-file 100000  \
+		--last-biosample 900000
 
 BIOSAMPLE-SET-XML-CHUNK-FILES=$(shell ls shared-chunks)
 
@@ -114,7 +121,6 @@ load-biosample-sets: $(BIOSAMPLE-SET-XML-CHUNK-NAMES) # 5 hours? could possibly 
 
 # docker exec -it basex10  basex -c list
 # docker exec -it basex10  basex -c "open biosample_set_from_0; info db"
-
 # docker exec -it basex10  basex -c "open biosample_set_from_0; info index"
 
 
@@ -125,7 +131,7 @@ biosample_non_attribute_metadata_wide:
 
 
 PHONY: all_biosample_attributes_values_by_raw_id # make sure computer doesn't go to sleep # 70 minutes
-	all_biosample_attributes_values_by_raw_id:
+all_biosample_attributes_values_by_raw_id:
 	date
 	time docker exec -it basex10 basex basex/shared-queries/$@.xq > shared-results/$@.tsv
 
