@@ -31,7 +31,8 @@ clean:
 
 .PHONY: setup-shared-dirs
 setup-shared-dirs:
-	mkdir -p shared-chunks shared-queries shared-results shared-basex-data shared-postgres
+	mkdir -p shared-chunks shared-queries shared-results shared-basex-data shared-postgres downloads
+	touch shared-chunks/.gitkeep shared-queries/.gitkeep shared-results/.gitkeep shared-basex-data/.gitkeep shared-postgres/.gitkeep downloads/.gitkeep  
 
 .PHONY: basex-up
 basex-up:
