@@ -1,13 +1,16 @@
 RUN=poetry run
 
 DOWNLOADS_FOLDER := downloads
-CHUNKS_FOLDER := data/biosample-set-xml-chunks # todo git-ignore data/
+CHUNKS_FOLDER := data/biosample-set-xml-chunks
+ # todo git-ignore large directories
 XML_FILE := $(DOWNLOADS_FOLDER)/biosample_set.xml.gz
 UNPACKED_FILE := $(DOWNLOADS_FOLDER)/biosample_set.xml
 
 # Default target
 .PHONY: all
-all: $(UNPACKED_FILE) biosample-set-xml-chunks create-biosample-set-logs
+all: $(UNPACKED_FILE)
+
+#  biosample-set-xml-chunks create-biosample-set-logs
 
 # Target to download the file
 $(XML_FILE):
@@ -20,7 +23,7 @@ $(UNPACKED_FILE): $(XML_FILE)
 
 # Clean target to remove downloaded files
 clean:
-	rm -rf $(DOWNLOADS_FOLDER)
+	rm -rf $(DOWNLOADS_FOLDER)/*
 	rm -rf $(CHUNKS_FOLDER)/*
 
 # Declare targets as not phony
