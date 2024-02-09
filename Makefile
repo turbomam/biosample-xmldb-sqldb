@@ -1,37 +1,37 @@
 RUN=poetry run
 
-DOWNLOADS_FOLDER := downloads
-CHUNKS_FOLDER := data/biosample-set-xml-chunks
-XML_FILE := $(DOWNLOADS_FOLDER)/biosample_set.xml.gz
-UNPACKED_FILE := $(DOWNLOADS_FOLDER)/biosample_set.xml
-
 # Default target
 .PHONY: all 
-	# clean
-all: setup-shared-dirs $(UNPACKED_FILE) biosample-set-xml-chunks basex-up load-biosample-sets \
+
+all: clean \
+setup-shared-dirs \
+downloads/biosample_set.xml \
+biosample-set-xml-chunks \
+basex-up \
+load-biosample-sets \
 biosample_non_attribute_metadata_wide \
 all_biosample_attributes_values_by_raw_id \
 postgres-all
 
-
-#   create-biosample-set-logs
-
 # Target to download the file
-$(XML_FILE):
-	mkdir -p $(DOWNLOADS_FOLDER)
-	curl -o $(XML_FILE) https://ftp.ncbi.nlm.nih.gov/biosample/biosample_set.xml.gz
+downloads/biosample_set.xml.gz:
+	mkdir -p  downloads
+	curl -o $@ https://ftp.ncbi.nlm.nih.gov/biosample/biosample_set.xml.gz
 
 # Target to unpack the file
-$(UNPACKED_FILE): $(XML_FILE)
-	gunzip -c $(XML_FILE) > $(UNPACKED_FILE)
+downloads/biosample_set.xml: downloads/biosample_set.xml.gz
+	gunzip -c $< > $@
 
 # Clean target to remove downloaded files
 clean:
-	rm -rf $(DOWNLOADS_FOLDER)/*
-	rm -rf $(CHUNKS_FOLDER)/*
+	docker rm -f basex10 || true
+	docker rm -f biosample-postgres || true
+	docker system prune --force
+	rm -rf downloads/*
+	rm -rf shared-chunks/*
 
 # Declare targets as not phony
-.SECONDARY: $(XML_FILE) $(UNPACKED_FILE)
+.SECONDARY: downloads/biosample_set.xml.gz downloads/biosample_set.xml
 
 
 ## https://github.com/Quodatum/basex-docker#readme
@@ -44,15 +44,16 @@ setup-shared-dirs:
 
 ## this mapping isn't working in Ubuntu
 # 		-v `pwd`/shared-basex-data:/srv/basex/data \
+# and the user launching the makefile can't delete the pg data directory
 
 .PHONY: basex-up
 basex-up:
 	docker run \
 		--name basex10 \
 		-p 8080:8080 \
-		-v `pwd`/shared-queries:/srv/basex/shared-queries \
-		-v `pwd`/shared-results:/srv/basex/shared-results \
-		-v `pwd`/shared-chunks:/srv/basex/shared-chunks \
+		-v $(shell pwd)/shared-queries:/srv/basex/shared-queries \
+		-v $(shell pwd)/shared-results:/srv/basex/shared-results \
+		-v $(shell pwd)/shared-chunks:/srv/basex/shared-chunks \
 		-d quodatum/basexhttp
 	# skipping #chown -R 1000:1000 shared-basex-data
 	sleep 5
@@ -100,13 +101,13 @@ postgres-create:
 
 .PHONY: biosample-set-xml-chunks
 # 1000000 biosamples-per-file -> 35x ~ 3 GB output files/databases ~ 30 seconds per chunk # loading: ~ 8 min per chunk # todo larger chunks crash load with "couldn't write tmp file..."
-biosample-set-xml-chunks: $(UNPACKED_FILE)
-	mkdir -p $(CHUNKS_FOLDER)
+biosample-set-xml-chunks: downloads/biosample_set.xml
+	mkdir -p shared-chunks
 	$(RUN) python biosample_xmldb_sqldb/split_into_N_biosamples.py \
 		--input-file-name $< \
 		--output-dir shared-chunks \
-		--biosamples-per-file 100000  \
-		--last-biosample 900000
+		--biosamples-per-file 10000  \
+		--last-biosample 90000
 
 BIOSAMPLE-SET-XML-CHUNK-FILES=$(shell ls shared-chunks)
 
