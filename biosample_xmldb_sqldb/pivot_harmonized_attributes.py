@@ -2,6 +2,8 @@ import pandas as pd
 from sqlalchemy import create_engine, text, inspect
 import os
 
+from datetime import datetime
+
 # todo add a click cli
 
 conn_string = "postgresql://biosample:biosample-password@localhost:5433/biosample"
@@ -27,8 +29,16 @@ with engine.connect() as conn:
     accessible_tables = inspector.get_table_names()
     print(f"{accessible_tables = }")
 
+    sql = text("SELECT count(*) FROM all_ncbi_attributes_long")
+    source_row_count = conn.execute(sql).fetchone()[0]  # Extract the single value
+
     while True:
-        print(f"Processing through row {offset}")
+
+        now = datetime.now()
+        iso_8601_string = now.isoformat()
+
+
+        print(f"Processing through row {offset} of {source_row_count} at {iso_8601_string}")
 
         sql = text(
             f"""SELECT raw_id, harmonized_name, value FROM all_ncbi_attributes_long LIMIT {chunk_size} OFFSET {offset}""")
@@ -109,3 +119,4 @@ with engine.connect() as conn:
 
         pivoted_data = pd.concat([pivoted_data, pivoted_chunk])
         print(f"{pivoted_data.shape = }")
+

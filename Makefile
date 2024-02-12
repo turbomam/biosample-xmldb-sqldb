@@ -94,8 +94,8 @@ biosample-set-xml-chunks: downloads/biosample_set.xml
 	$(RUN) python biosample_xmldb_sqldb/split_into_N_biosamples.py \
 		--input-file-name $< \
 		--output-dir shared-chunks \
-		--biosamples-per-file 1000000  \
-		--last-biosample 3000000
+		--biosamples-per-file 100000  \
+		--last-biosample 300000
 
 BIOSAMPLE-SET-XML-CHUNK-FILES=$(shell ls shared-chunks)
 
@@ -137,18 +137,26 @@ non-attribute-metadata-file:
 
 .PHONY: all-ncbi-attributes-long-postgres
 all-ncbi-attributes-long-postgres:
+	date
 	PGPASSWORD=biosample-password \
-		psql \
+		time psql \
 		-h localhost \
 		-p 5433 \
 		-U biosample \
 		-d biosample \
 		-c "\COPY all_ncbi_attributes_long FROM 'shared-results/all-ncbi-attributes-long-file.tsv' WITH DELIMITER E'\t' CSV HEADER;"
 
+
+.PHONY: all-ncbi-attributes-long-idx
+all-ncbi-attributes-long-idx:
+	date
+	PGPASSWORD=biosample-password time psql -h localhost -p 5433 -U biosample -d biosample -f sql/all-ncbi-attributes-long-idx.sql
+
 .PHONY: non-attribute-metadata-postgres
 non-attribute-metadata-postgres:
+	date
 	PGPASSWORD=biosample-password \
-		psql \
+		time psql \
 		-h localhost \
 		-p 5433 \
 		-U biosample \
@@ -161,11 +169,11 @@ pre-basex-all: setup-shared-dirs downloads/biosample_set.xml biosample-set-xml-c
 
 # make pre-basex-all
 .PHONY: basex-all
-basex-all: basex-up load-biosample-sets all-ncbi-attributes-long-file non-attribute-metadata-file
+basex-all: basex-up load-biosample-sets all-ncbi-attributes-long-file non-attribute-metadata-file 
 
 # make basex-all
 .PHONY: postgres-all
-postgres-all: postgres-up postgres-create all-ncbi-attributes-long-postgres non-attribute-metadata-postgres 
+postgres-all: postgres-up postgres-create all-ncbi-attributes-long-postgres non-attribute-metadata-postgres all-ncbi-attributes-long-idx
 	poetry run python biosample_xmldb_sqldb/pivot_harmonized_attributes.py
 	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -f sql/create_view.sql
 	@echo Now check if the view was created
