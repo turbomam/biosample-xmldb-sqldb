@@ -1,6 +1,7 @@
 RUN=poetry run
 
 # TODO reinstate shared storage for basex and postgres
+# TODO fts columns for non-attribute-metadata-postgres ?
 
 # Default target
 .PHONY: all 
@@ -17,12 +18,13 @@ aggressive-clean:
 # 	sudo rm -rf shared-postgres/*
 	rm -rf downloads/*
 	rm -rf shared-chunks/*
+	rm -rf shared-results/*
 	
 
 .PHONY: setup-shared-dirs
 setup-shared-dirs:
-	mkdir -p shared-chunks shared-queries shared-results downloads
-	touch shared-chunks/.gitkeep shared-queries/.gitkeep shared-results/.gitkeep downloads/.gitkeep  
+	mkdir -p shared-chunks shared-xq shared-results downloads
+	touch shared-chunks/.gitkeep shared-xq/.gitkeep shared-results/.gitkeep downloads/.gitkeep  
 
 downloads/biosample_set.xml.gz:
 	mkdir -p  downloads
@@ -44,7 +46,7 @@ basex-up:
 	docker run \
 		--name biosample-basex \
 		-p 8080:8080 \
-		-v $(shell pwd)/shared-queries:/srv/basex/shared-queries \
+		-v $(shell pwd)/shared-xq:/srv/basex/shared-xq \
 		-v $(shell pwd)/shared-results:/srv/basex/shared-results \
 		-v $(shell pwd)/shared-chunks:/srv/basex/shared-chunks \
 		-d quodatum/basexhttp
@@ -115,18 +117,18 @@ load-biosample-sets: $(BIOSAMPLE-SET-XML-CHUNK-NAMES) # 5 hours? could possibly 
 PHONY: all-ncbi-attributes-long-file # make sure computer doesn't go to sleep # 70 minutes
 all-ncbi-attributes-long-file:
 	date
-	time docker exec -it biosample-basex basex basex/shared-queries/$@.xq > shared-results/$@.tsv
+	time docker exec -it biosample-basex basex basex/shared-xq/$@.xq > shared-results/$@.tsv
 
 PHONY: non-attribute-metadata-file
 non-attribute-metadata-file:
 	date
-	docker exec -it biosample-basex basex basex/shared-queries/$@.xq > shared-results/$@.tsv
+	docker exec -it biosample-basex basex basex/shared-xq/$@.xq > shared-results/$@.tsv
 
 
 ## psql access from the host: PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample
 
 ## dealing with incomplete data files ?
-# sed -n -e :a -e '1,2!{P;N;D;};N;ba' shared-queries/non-attribute-metadata-file.tsv > shared-queries/non-attribute-metadata-file-minus_two_lines.tsv # basex ouput my have a few garbage lines if the queries are executed before all of the chunks are loaded into databases
+# sed -n -e :a -e '1,2!{P;N;D;};N;ba' shared-xq/non-attribute-metadata-file.tsv > shared-xq/non-attribute-metadata-file-minus_two_lines.tsv # basex ouput my have a few garbage lines if the queries are executed before all of the chunks are loaded into databases
 # or 
 # psql -h localhost -p 5433 -U your_username -d your_database -c "\COPY your_table FROM 'your_csv_file.csv' WITH (FORMAT CSV, NULL 'NULL', HEADER);"
 
@@ -186,6 +188,6 @@ basex-all: basex-up load-biosample-sets all-ncbi-attributes-long-file non-attrib
 
 # make basex-all
 .PHONY: postgres-all
-postgres-all: postgres-up postgres-create all-ncbi-attributes-long-postgres non-attribute-metadata-postgres all-ncbi-attributes-long-idx all-ncbi-attributes-long-fts
+postgres-all: postgres-up postgres-create all-ncbi-attributes-long-postgres non-attribute-metadata-postgres all-ncbi-attributes-long-idx all-ncbi-attributes-long-fts experimental-factor-fts-query
 	poetry run python biosample_xmldb_sqldb/pivot_harmonized_attributes.py
 	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -f sql/create_view.sql
