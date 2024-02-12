@@ -1,7 +1,11 @@
 # biosample-xmldb-sqldb
 Tools for loading [NCBI BioSample](https://www.ncbi.nlm.nih.gov/biosample) into an XML database and then transforming that into a SQL database
 
-Requires Docker, Python and `poetry install`
+REquirements:
+- Docker is installed and running
+- Python 3.10+ is installed
+- Python poetry is installed
+- an environment has been created with `poetry install`
 
 The Makefile does not provide an `all` target at this point.
 If none of the containers are running yet and the downlaods and chunks files have not been created yet,
