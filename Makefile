@@ -146,6 +146,17 @@ all-ncbi-attributes-long-postgres:
 		-d biosample \
 		-c "\COPY all_ncbi_attributes_long FROM 'shared-results/all-ncbi-attributes-long-file.tsv' WITH DELIMITER E'\t' CSV HEADER;"
 
+.PHONY: non-attribute-metadata-postgres
+non-attribute-metadata-postgres:
+	date
+	PGPASSWORD=biosample-password \
+		time psql \
+		-h localhost \
+		-p 5433 \
+		-U biosample \
+		-d biosample \
+		-c "\COPY non_attribute_metadata FROM 'shared-results/non-attribute-metadata-file.tsv' WITH DELIMITER E'\t' CSV HEADER;"
+
 
 .PHONY: all-ncbi-attributes-long-idx
 all-ncbi-attributes-long-idx:
@@ -158,16 +169,11 @@ all-ncbi-attributes-long-fts:
 	date
 	PGPASSWORD=biosample-password time psql -h localhost -p 5433 -U biosample -d biosample -f sql/all-ncbi-attributes-long-fts.sql
 
-.PHONY: non-attribute-metadata-postgres
-non-attribute-metadata-postgres:
+.PHONY: experimental-factor-fts-query
+experimental-factor-fts-query:
 	date
-	PGPASSWORD=biosample-password \
-		time psql \
-		-h localhost \
-		-p 5433 \
-		-U biosample \
-		-d biosample \
-		-c "\COPY non_attribute_metadata FROM 'shared-results/non-attribute-metadata-file.tsv' WITH DELIMITER E'\t' CSV HEADER;"
+	PGPASSWORD=biosample-password time psql -h localhost -p 5433 -U biosample -d biosample -f sql/experimental-factor-fts-query.sql
+
 
 # optionally make aggressive-clean # this deletes downloads, basex data, extracted chunks, and postgres data
 .PHONY: pre-basex-all
