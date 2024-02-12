@@ -22,7 +22,7 @@ The Makefile in this repo downloads **all** of NCBI's BioSample collection and u
   --last-biosample 9000
 ```
 
-...it only populates a subset of 9000 Biosamples into the XML and Postgres databases. Remove those lines to load the entire collection. That requires ~ 400 GB of storage.
+...it only populates a subset of 9000 Biosamples into the XML and Postgres databases. Remove those lines to load the entire collection. That takes ~ 24 hours and requires ~ 400 GB of storage.
 
 If containers have been built or some of those files have been created, then the user could either run `make clean` and start over **losing** all of that data,
 or manually select make targets (or other commands) that pick up at the desired point. No automation is provided for that case yet.
