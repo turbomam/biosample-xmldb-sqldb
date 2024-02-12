@@ -1,5 +1,5 @@
 # biosample-xmldb-sqldb
-Tools for loading [NCBI BioSample]([url](https://www.ncbi.nlm.nih.gov/biosample)) into an XML database and then transforming that into a SQL database
+Tools for loading [NCBI BioSample]([url](https://www.ncbi.nlm.nih.gov/biosample) into an XML database and then transforming that into a SQL database
 
 Requires Docker, Python and `poetry install`
 
