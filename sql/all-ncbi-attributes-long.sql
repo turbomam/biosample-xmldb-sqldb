@@ -9,11 +9,11 @@
 --          @display_name: 116706130x, strings, leaf
 --          @unit: 16966x, strings, leaf
 
-CREATE TABLE IF NOT EXISTS all_attribs(
+CREATE TABLE IF NOT EXISTS all_ncbi_attributes_long(
   "raw_id" INTEGER,
   "attribute_name" TEXT,
   "harmonized_name" TEXT,
   "value" TEXT
 );
 
-CREATE INDEX all_attribs_idx on all_attribs("harmonized_name", "raw_id", "attribute_name");
+CREATE INDEX all_ncbi_attributes_long_idx on all_ncbi_attributes_long("harmonized_name", "raw_id", "attribute_name");

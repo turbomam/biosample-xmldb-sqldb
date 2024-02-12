@@ -1,5 +1,5 @@
 import pandas as pd
-from sqlalchemy import create_engine, text, inspect, MetaData
+from sqlalchemy import create_engine, text, inspect
 
 # todo add a click cli
 
@@ -21,7 +21,7 @@ with engine.connect() as conn:
         print(f"Processing through row {offset}")
 
         sql = text(
-            f"""SELECT raw_id, harmonized_name, value FROM all_attribs LIMIT {chunk_size} OFFSET {offset}""")
+            f"""SELECT raw_id, harmonized_name, value FROM all_ncbi_attributes_long LIMIT {chunk_size} OFFSET {offset}""")
 
         chunk = conn.execute(sql).fetchall()
         offset = offset + chunk_size
@@ -38,7 +38,8 @@ with engine.connect() as conn:
                 table_name = 'harmonized_attributes_wide'
 
                 # Calculate number of chunks
-                num_chunks = -(-len(pivoted_data) // chunk_size)  # Round up division
+                num_chunks = int(-(-len(pivoted_data) // (chunk_size / 3)))  # Round up division
+                print(f"{num_chunks = }")
 
                 # Iterate over DataFrame in chunks and write to SQL table
                 for i in range(num_chunks):
@@ -52,6 +53,37 @@ with engine.connect() as conn:
                         index=True,
                         if_exists='append'
                     )
+
+                # indexed by default since there's only one integer colum?
+
+                sql = f"CREATE INDEX idx_raw_id ON {table_name} (raw_id)"
+                print(sql)
+                # conn.execute(text(sql))
+
+                # Create a view joining non_attribute_metadata with the new table
+                view_name = 'attributes_pus_view'
+                sql = f"""CREATE VIEW {view_name} AS
+                             select
+                             id,
+                             accession,
+                             primary_id,
+                             sra_id,
+                             bp_id,
+                             model,
+                             package,
+                             package_name,
+                             status,
+                             status_date,
+                             taxonomy_id,
+                             taxonomy_name,
+                             title,
+                             samp_name,
+                             paragraph,
+                             harmonized_attributes_wide.*
+                             FROM non_attribute_metadata 
+                             FULL OUTER JOIN {table_name} ON non_attribute_metadata.raw_id = {table_name}.raw_id"""
+                print(sql)
+                conn.execute(text(sql))
 
             else:
                 print("No data to write")
