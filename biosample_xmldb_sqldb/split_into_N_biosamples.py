@@ -44,7 +44,7 @@ def process_input_file(input_file_name, output_dir, biosamples_per_file, last_bi
                 if line.startswith(opening_trigger):
                     biosamples_seen += 1
                     if offset == 0 and biosamples_seen > 1:
-                        logger.info(f"{datetime.now().time()} ... {biosamples_seen} complete biosamples have been seen as of line #{lineno}. For chunks of {biosamples_per_file}, the modulo is {offset}. Active output file = {smallfile.name}")
+                        logger.info(f"{datetime.now().time()} ... {biosamples_seen} complete biosamples have been seen as of line #{lineno}. Active output file = {smallfile.name}")
                         smallfile.write(closer_to_write)
                         smallfile.close()
                         smallfile = create_output_file(output_dir, biosamples_seen)

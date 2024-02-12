@@ -1,13 +1,23 @@
 import pandas as pd
 from sqlalchemy import create_engine, text, inspect
+import os
 
 # todo add a click cli
 
 conn_string = "postgresql://biosample:biosample-password@localhost:5433/biosample"
 
+destination_table_name = 'harmonized_attributes_wide'
+new_view_name = 'attributes_plus_view'
+view_creation_file = 'create_view.sql'
+
+view_creation_directory = "sql"
+os.makedirs(view_creation_directory, exist_ok=True)
+view_creation_path = os.path.join(view_creation_directory, view_creation_file)
+
 engine = create_engine(conn_string)
 
-chunk_size = 100000
+chunk_size = 1000000
+write_chunk_scale_factor = 1
 offset = 0
 
 pivoted_data = pd.DataFrame()
@@ -27,18 +37,16 @@ with engine.connect() as conn:
         offset = offset + chunk_size
 
         if not chunk:
-            write_chunk_size = int(chunk_size / 10)
+            write_chunk_size = int(chunk_size / write_chunk_scale_factor)
             if not pivoted_data.empty:
                 print(f"{pivoted_data.shape = }")
                 print(f"No more data to read. Writing to database.")  # in chunks of {write_chunk_size}
                 sorted_cols = sorted(pivoted_data.columns[1:])
                 pivoted_data = pivoted_data[sorted_cols]
-                pivoted_data.to_csv("harmonized_attributes_wide.tsv", sep="\t", index=True)
-
-                table_name = 'harmonized_attributes_wide'
+                # pivoted_data.to_csv("harmonized_attributes_wide.tsv", sep="\t", index=True)
 
                 # Calculate number of chunks
-                num_chunks = int(-(-len(pivoted_data) // (chunk_size / 3)))  # Round up division
+                num_chunks = int(-(-len(pivoted_data) // write_chunk_size))  # Round up division
                 print(f"{num_chunks = }")
 
                 # Iterate over DataFrame in chunks and write to SQL table
@@ -48,21 +56,19 @@ with engine.connect() as conn:
                     end_idx = (i + 1) * chunk_size
                     chunk_df = pivoted_data.iloc[start_idx:end_idx]
                     chunk_df.to_sql(
-                        table_name,
+                        destination_table_name,
                         engine,
                         index=True,
                         if_exists='append'
                     )
 
-                # indexed by default since there's only one integer colum?
-
-                sql = f"CREATE INDEX idx_raw_id ON {table_name} (raw_id)"
-                print(sql)
-                # conn.execute(text(sql))
-
                 # Create a view joining non_attribute_metadata with the new table
-                view_name = 'attributes_pus_view'
-                sql = f"""CREATE VIEW {view_name} AS
+                # write that to a file, 
+                # so it can be executed in the Maekfile, outside of this python script
+                # harcoding the non_attribute_metadata columns because a select * query
+                # 
+
+                sql = f"""CREATE VIEW {new_view_name} AS
                              select
                              id,
                              accession,
@@ -81,9 +87,12 @@ with engine.connect() as conn:
                              paragraph,
                              harmonized_attributes_wide.*
                              FROM non_attribute_metadata 
-                             FULL OUTER JOIN {table_name} ON non_attribute_metadata.raw_id = {table_name}.raw_id"""
-                print(sql)
-                conn.execute(text(sql))
+                             FULL OUTER JOIN {destination_table_name} ON non_attribute_metadata.raw_id = {destination_table_name}.raw_id"""
+
+
+                sql.encode('utf-8')
+                with open(view_creation_path, "w") as f:
+                    f.write(sql)
 
             else:
                 print("No data to write")

@@ -94,8 +94,8 @@ biosample-set-xml-chunks: downloads/biosample_set.xml
 	$(RUN) python biosample_xmldb_sqldb/split_into_N_biosamples.py \
 		--input-file-name $< \
 		--output-dir shared-chunks \
-		--biosamples-per-file 1000  \
-		--last-biosample 9000
+		--biosamples-per-file 1000000  \
+		--last-biosample 3000000
 
 BIOSAMPLE-SET-XML-CHUNK-FILES=$(shell ls shared-chunks)
 
@@ -163,9 +163,9 @@ pre-basex-all: setup-shared-dirs downloads/biosample_set.xml biosample-set-xml-c
 .PHONY: basex-all
 basex-all: basex-up load-biosample-sets all-ncbi-attributes-long-file non-attribute-metadata-file
 
-
 # make basex-all
 .PHONY: postgres-all
 postgres-all: postgres-up postgres-create all-ncbi-attributes-long-postgres non-attribute-metadata-postgres 
 	poetry run python biosample_xmldb_sqldb/pivot_harmonized_attributes.py
-
+	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -f sql/create_view.sql
+	@echo Now check if the view was created
