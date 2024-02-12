@@ -1,46 +1,45 @@
 RUN=poetry run
 
-# Default target
-.PHONY: all 
+# TODO reinstate shared storage for basex and postgres
 
-all: clean \
-setup-shared-dirs \
-downloads/biosample_set.xml \
-biosample-set-xml-chunks \
-basex-up \
-load-biosample-sets \
-biosample_non_attribute_metadata_wide \
-all_biosample_attributes_values_by_raw_id \
-postgres-all
+# # Default target
+# .PHONY: all 
 
-# Target to download the file
-downloads/biosample_set.xml.gz:
-	mkdir -p  downloads
-	curl -o $@ https://ftp.ncbi.nlm.nih.gov/biosample/biosample_set.xml.gz
+# # clean \
+# # setup-shared-dirs \
 
-# Target to unpack the file
-downloads/biosample_set.xml: downloads/biosample_set.xml.gz
-	gunzip -c $< > $@
+# all: downloads/biosample_set.xml \
+# biosample-set-xml-chunks \
+# basex-up \
+# load-biosample-sets \
+# non-attribute-wide-file \
+# all-attribs-file \
+# postgres-all
 
 # Clean target to remove downloaded files
 clean:
 	docker rm -f basex10 || true
 	docker rm -f biosample-postgres || true
 	docker system prune --force
-	rm -rf downloads/*
-	rm -rf shared-chunks/*
-
-# Declare targets as not phony
-.SECONDARY: downloads/biosample_set.xml.gz downloads/biosample_set.xml
-
-
-## https://github.com/Quodatum/basex-docker#readme
+# 	sudo rm -rf shared-postgres/*
+# 	rm -rf downloads/*
+# 	rm -rf shared-chunks/*
+	
 
 .PHONY: setup-shared-dirs
 setup-shared-dirs:
-	mkdir -p shared-chunks shared-queries shared-results shared-basex-data shared-postgres downloads
-	touch shared-chunks/.gitkeep shared-queries/.gitkeep shared-results/.gitkeep shared-basex-data/.gitkeep shared-postgres/.gitkeep downloads/.gitkeep  
+	mkdir -p shared-chunks shared-queries shared-results downloads
+	touch shared-chunks/.gitkeep shared-queries/.gitkeep shared-results/.gitkeep downloads/.gitkeep  
 
+downloads/biosample_set.xml.gz:
+	mkdir -p  downloads
+	curl -o $@ https://ftp.ncbi.nlm.nih.gov/biosample/biosample_set.xml.gz
+
+downloads/biosample_set.xml: downloads/biosample_set.xml.gz
+	gunzip -c $< > $@
+
+
+## https://github.com/Quodatum/basex-docker#readme
 
 ## this mapping isn't working in Ubuntu
 # 		-v `pwd`/shared-basex-data:/srv/basex/data \
@@ -71,17 +70,12 @@ basex-up:
 
 .PHONY: postgres-up
 postgres-up:
-	rm -rf shared-postgres/*
-	mkdir -p shared-postgres/pg_data
-	docker rm -f biosample-postgres || true
 	docker run \
 		--name biosample-postgres \
 		-p 5433:5432 \
-		-v $(shell pwd)/shared-results:/root/shared-results \
-		-v $(shell pwd)/shared-postgres/pg_data:/var/lib/postgresql/data \
 		-e POSTGRES_PASSWORD=postgres-password \
 		-d postgres
-	sleep 30
+	sleep 10
 
 # could check with
 # docker exec -it biosample-postgres /bin/bash
@@ -97,7 +91,7 @@ postgres-create:
 	docker exec -it biosample-postgres psql -U postgres -d biosample -c "GRANT CREATE ON SCHEMA public TO biosample;"
 	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -f sql/non_attribute_metadata.sql
 	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -f sql/all_attribs.sql
-	sleep 30
+	sleep 10
 
 .PHONY: biosample-set-xml-chunks
 # 1000000 biosamples-per-file -> 35x ~ 3 GB output files/databases ~ 30 seconds per chunk # loading: ~ 8 min per chunk # todo larger chunks crash load with "couldn't write tmp file..."
@@ -126,20 +120,21 @@ load-biosample-sets: $(BIOSAMPLE-SET-XML-CHUNK-NAMES) # 5 hours? could possibly 
 
 
 
-PHONY: biosample_non_attribute_metadata_wide
-biosample_non_attribute_metadata_wide:
+PHONY: non-attribute-wide-file
+non-attribute-wide-file:
+	date
 	docker exec -it basex10 basex basex/shared-queries/$@.xq > shared-results/$@.tsv
 
 
-PHONY: all_biosample_attributes_values_by_raw_id # make sure computer doesn't go to sleep # 70 minutes
-all_biosample_attributes_values_by_raw_id:
+PHONY: all-attribs-file # make sure computer doesn't go to sleep # 70 minutes
+all-attribs-file:
 	date
 	time docker exec -it basex10 basex basex/shared-queries/$@.xq > shared-results/$@.tsv
 
 ## psql access from the host: PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample
 
 ## dealing with incomplete data files ?
-# sed -n -e :a -e '1,2!{P;N;D;};N;ba' shared-queries/biosample_non_attribute_metadata_wide.tsv > shared-queries/biosample_non_attribute_metadata_wide-minus_two_lines.tsv # basex ouput my have a few garbage lines if the queries are executed before all of the chunks are loaded into databases
+# sed -n -e :a -e '1,2!{P;N;D;};N;ba' shared-queries/non-attribute-wide-file.tsv > shared-queries/non-attribute-wide-file-minus_two_lines.tsv # basex ouput my have a few garbage lines if the queries are executed before all of the chunks are loaded into databases
 # or 
 # psql -h localhost -p 5433 -U your_username -d your_database -c "\COPY your_table FROM 'your_csv_file.csv' WITH (FORMAT CSV, NULL 'NULL', HEADER);"
 
@@ -148,28 +143,37 @@ all_biosample_attributes_values_by_raw_id:
 # docker exec -it biosample-postgres pg_dump -U postgres -d biosample --table=non_attribute_metadata --schema-only > non_attribute_metadata_structure.sql
 
 
-.PHONY: postgres-non-attribute
-postgres-non-attribute:
+.PHONY: non-attribute-wide-postgres
+non-attribute-wide-postgres:
 	PGPASSWORD=biosample-password \
 		psql \
 		-h localhost \
 		-p 5433 \
 		-U biosample \
 		-d biosample \
-		-c "\COPY non_attribute_metadata FROM 'shared-results/biosample_non_attribute_metadata_wide.tsv' WITH DELIMITER E'\t' CSV HEADER;"
+		-c "\COPY non_attribute_metadata FROM 'shared-results/non-attribute-wide-file.tsv' WITH DELIMITER E'\t' CSV HEADER;"
 
 
-.PHONY: postgres-all-attribs
-postgres-all-attribs:
+.PHONY: all-attribs-postgres
+all-attribs-postgres:
 	PGPASSWORD=biosample-password \
 		psql \
 		-h localhost \
 		-p 5433 \
 		-U biosample \
 		-d biosample \
-		-c "\COPY all_attribs FROM 'shared-results/all_biosample_attributes_values_by_raw_id.tsv' WITH DELIMITER E'\t' CSV HEADER;"
+		-c "\COPY all_attribs FROM 'shared-results/all-attribs-file.tsv' WITH DELIMITER E'\t' CSV HEADER;"
 
 
+.PHONY: pre-basex-all
+pre-basex-all: setup-shared-dirs downloads/biosample_set.xml biosample-set-xml-chunks
+
+# make pre-basex-all
+.PHONY: basex-all
+basex-all: basex-up load-biosample-sets all-attribs-file non-attribute-wide-file
+
+
+# make basex-all
 .PHONY: postgres-all
-postgres-all: postgres-up postgres-create postgres-non-attribute postgres-all-attribs
+postgres-all: postgres-up postgres-create all-attribs-postgres non-attribute-wide-postgres 
 
