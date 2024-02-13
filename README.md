@@ -1,6 +1,10 @@
 # biosample-xmldb-sqldb
 Tools for loading [NCBI BioSample](https://www.ncbi.nlm.nih.gov/biosample) into an XML database and then transforming that into a SQL database
 
+_This is a replacement for https://github.com/turbomam/biosample-basex (which required a more comlciated system setup and used SQLite as an intermediary between XML and Postgres)_
+
+_Inspired by https://github.com/INCATools/biosample-analysis_
+
 Requirements:
 - Docker is installed and running
 - Python 3.10+ is installed
