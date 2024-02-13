@@ -1,21 +1,17 @@
 RUN=poetry run
 
-# TODO reinstate shared storage for basex and postgres
-# TODO fts columns for non-attribute-metadata-postgres ?
-
 # Default target
 .PHONY: all 
 all:
 	@echo No all target is provided at this point.
 	@echo If none of the containers are running yet and the downlaods and chunks files have not been created yet,
-	@echo Then a typical flwo would been
-	@echo make pre-basex-all basex-all postgres-all
+	@echo Then a typical flow would be making the following targets one at a time
+	@echo pre-basex-all basex-all postgres-all
 
 aggressive-clean:
 	docker rm -f biosample-basex || true
 	docker rm -f biosample-postgres || true
 	docker system prune --force
-# 	sudo rm -rf shared-postgres/*
 	rm -rf downloads/*
 	rm -rf shared-chunks/*
 	rm -rf shared-results/*
@@ -36,10 +32,6 @@ downloads/biosample_set.xml: downloads/biosample_set.xml.gz
 
 
 ## https://github.com/Quodatum/basex-docker#readme
-
-## this mapping isn't working in Ubuntu
-# 		-v `pwd`/shared-basex-data:/srv/basex/data \
-# and the user launching the makefile can't delete the pg data directory
 
 .PHONY: basex-up
 basex-up:
@@ -96,8 +88,8 @@ biosample-set-xml-chunks: downloads/biosample_set.xml
 	$(RUN) python biosample_xmldb_sqldb/split_into_N_biosamples.py \
 		--input-file-name $< \
 		--output-dir shared-chunks \
-		--biosamples-per-file 100000  \
-		--last-biosample 300000
+		--biosamples-per-file 1000000  \
+		--last-biosample 40000000
 
 BIOSAMPLE-SET-XML-CHUNK-FILES=$(shell ls shared-chunks)
 
@@ -126,12 +118,6 @@ non-attribute-metadata-file:
 
 
 ## psql access from the host: PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample
-
-## dealing with incomplete data files ?
-# sed -n -e :a -e '1,2!{P;N;D;};N;ba' shared-xq/non-attribute-metadata-file.tsv > shared-xq/non-attribute-metadata-file-minus_two_lines.tsv # basex ouput my have a few garbage lines if the queries are executed before all of the chunks are loaded into databases
-# or 
-# psql -h localhost -p 5433 -U your_username -d your_database -c "\COPY your_table FROM 'your_csv_file.csv' WITH (FORMAT CSV, NULL 'NULL', HEADER);"
-
 
 ## dump structure
 # docker exec -it biosample-postgres pg_dump -U postgres -d biosample --table=non_attribute_metadata --schema-only > non_attribute_metadata_structure.sql
@@ -195,13 +181,10 @@ postgres-create-view: postgres-up postgres-create all-ncbi-attributes-long-postg
 pre-basex-all: setup-shared-dirs downloads/biosample_set.xml biosample-set-xml-chunks
 
 # make pre-basex-all
-# wait for that to finish, since it depends on getting BIOSAMPLE-SET-XML-CHUNK-NAMES from $(shell ls shared-chunks)
+# wait for that to finish, since this depends on getting BIOSAMPLE-SET-XML-CHUNK-NAMES from $(shell ls shared-chunks)
 .PHONY: basex-all
 basex-all: basex-up load-biosample-sets all-ncbi-attributes-long-file non-attribute-metadata-file 
 
 # make basex-all
 .PHONY: postgres-all
 postgres-all: postgres-pre-pivot postgres-pivot postgres-create-view
-
-
-# <Link type="entrez" target="bioproject" label="PRJNA656268">656268</Link>
