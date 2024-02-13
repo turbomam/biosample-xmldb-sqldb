@@ -18,7 +18,7 @@ view_creation_path = os.path.join(view_creation_directory, view_creation_file)
 
 engine = create_engine(conn_string)
 
-chunk_size = 1000000
+chunk_size = 100000
 write_chunk_scale_factor = 1
 offset = 0
 

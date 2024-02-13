@@ -5,8 +5,17 @@ RUN=poetry run
 all:
 	@echo No all target is provided at this point.
 	@echo If none of the containers are running yet and the downlaods and chunks files have not been created yet,
-	@echo Then a typical flow would be making the following targets one at a time
-	@echo pre-basex-all basex-all postgres-all
+	@echo Then a typical process for building the entire database would be:
+	@echo make pre-basex-all
+	@echo (then add closing BioSampleSet tag to last chunk. See https://github.com/turbomam/biosample-xmldb-sqldb/issues/21)
+	@echo make basex-all 
+	@echo make postgres-pre-pivot
+	@echo (then do whatever is necessary to free up RAM for pivoting, like rebooting? See https://github.com/turbomam/biosample-xmldb-sqldb/issues/23)
+	@echo make postgres-pre-pivot
+	@echo (then free up RAM again?)
+	@echo make postgres-create-view
+
+# Processing through row 2 600 000 of 549 805 612 at 2024-02-13T07:53:49.795245
 
 aggressive-clean:
 	docker rm -f biosample-basex || true
@@ -166,11 +175,13 @@ experimental-factor-fts-query: all-ncbi-attributes-long-postgres
 postgres-pre-pivot: postgres-up postgres-create all-ncbi-attributes-long-postgres non-attribute-metadata-postgres all-ncbi-attributes-long-idx all-ncbi-attributes-long-fts experimental-factor-fts-query
 
 .PHONY: postgres-pivot
-postgres-pivot: postgres-up postgres-create all-ncbi-attributes-long-postgres
-	poetry run python biosample_xmldb_sqldb/pivot_harmonized_attributes.py
+# postgres-up postgres-create all-ncbi-attributes-long-postgres
+postgres-pivot: 
+	$(RUN) python biosample_xmldb_sqldb/pivot_harmonized_attributes.py
 
 PHONY: postgres-create-view
-postgres-create-view: postgres-up postgres-create all-ncbi-attributes-long-postgres non-attribute-metadata-postgres
+postgres-create-view: 
+# postgres-up postgres-create all-ncbi-attributes-long-postgres non-attribute-metadata-postgres
 	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -f sql/create_view.sql
 
 
@@ -185,6 +196,12 @@ pre-basex-all: setup-shared-dirs downloads/biosample_set.xml biosample-set-xml-c
 .PHONY: basex-all
 basex-all: basex-up load-biosample-sets all-ncbi-attributes-long-file non-attribute-metadata-file 
 
-# make basex-all
-.PHONY: postgres-all
-postgres-all: postgres-pre-pivot postgres-pivot postgres-create-view
+# # make basex-all
+# .PHONY: postgres-all
+# postgres-all: postgres-pre-pivot postgres-pivot postgres-create-view
+
+656268.tsv:
+	$(RUN) pivot-from-bp-id \
+		--bp-id $(basename $@) \
+		--values-from attribute_name \
+		--output $@

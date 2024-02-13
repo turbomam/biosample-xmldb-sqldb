@@ -22,3 +22,4 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.scripts]
 split-into-N-biosamples = "biosample_xmldb_sqldb.split_into_N_biosamples:cli"
 #pivot-harmonized-attributes = "pivot_harmonized_attributes.split_into_N_biosamples"
+pivot-from-bp-id = "biosample_xmldb_sqldb.pivot_from_bp_id:main"

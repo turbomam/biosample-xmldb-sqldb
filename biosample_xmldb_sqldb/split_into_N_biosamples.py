@@ -54,7 +54,7 @@ def process_input_file(input_file_name, output_dir, biosamples_per_file, last_bi
                 if last_biosample and biosamples_seen >= last_biosample:
                     logger.info(f"Stopping here because {last_biosample} or more biosamples have been processed.")
                     if smallfile:
-                        smallfile.write(closer_to_write)
+                        smallfile.write(closer_to_write) # todo if we've reached the end of the file then "</BioSampleSet>" needs to be appended too
                         smallfile.close()
                     break
 
