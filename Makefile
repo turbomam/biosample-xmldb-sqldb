@@ -32,7 +32,7 @@ downloads/biosample_set.xml.gz:
 
 downloads/biosample_set.xml: downloads/biosample_set.xml.gz
 	date
-	time gunzip -c $< > $@ # expect ~ 90 GB in XXX minutes
+	time gunzip -c $< > $@ # expect ~ 105 GB in 6 minutes
 
 
 ## https://github.com/Quodatum/basex-docker#readme
@@ -77,7 +77,7 @@ postgres-up:
 # docker exec -it biosample-postgres /bin/bash
 
 .PHONY: postgres-create
-postgres-create:
+postgres-create: postgres-up
 	docker exec -it biosample-postgres psql -U postgres -c "CREATE DATABASE biosample;"
 	docker exec -it biosample-postgres psql -U postgres -c "CREATE USER biosample WITH PASSWORD 'biosample-password';"
 	docker exec -it biosample-postgres psql -U postgres -c "ALTER ROLE biosample SET client_encoding TO 'utf8';"
@@ -138,7 +138,7 @@ non-attribute-metadata-file:
 
 
 .PHONY: all-ncbi-attributes-long-postgres
-all-ncbi-attributes-long-postgres:
+all-ncbi-attributes-long-postgres: postgres-up postgres-create
 	date
 	PGPASSWORD=biosample-password \
 		time psql \
@@ -149,7 +149,7 @@ all-ncbi-attributes-long-postgres:
 		-c "\COPY all_ncbi_attributes_long FROM 'shared-results/all-ncbi-attributes-long-file.tsv' WITH DELIMITER E'\t' CSV HEADER;"
 
 .PHONY: non-attribute-metadata-postgres
-non-attribute-metadata-postgres:
+non-attribute-metadata-postgres: postgres-up postgres-create
 	date
 	PGPASSWORD=biosample-password \
 		time psql \
@@ -161,33 +161,47 @@ non-attribute-metadata-postgres:
 
 
 .PHONY: all-ncbi-attributes-long-idx
-all-ncbi-attributes-long-idx:
+all-ncbi-attributes-long-idx: all-ncbi-attributes-long-postgres
 	date
 	PGPASSWORD=biosample-password time psql -h localhost -p 5433 -U biosample -d biosample -f sql/all-ncbi-attributes-long-idx.sql
 
 
 .PHONY: all-ncbi-attributes-long-fts
-all-ncbi-attributes-long-fts:
+all-ncbi-attributes-long-fts: all-ncbi-attributes-long-postgres
 	date
 	PGPASSWORD=biosample-password time psql -h localhost -p 5433 -U biosample -d biosample -f sql/all-ncbi-attributes-long-fts.sql
 
 .PHONY: experimental-factor-fts-query
-experimental-factor-fts-query:
+experimental-factor-fts-query: all-ncbi-attributes-long-postgres
 	date
 	PGPASSWORD=biosample-password time psql -h localhost -p 5433 -U biosample -d biosample -f sql/experimental-factor-fts-query.sql
 
+.PHONY: postgres-pre-pivot
+postgres-pre-pivot: postgres-up postgres-create all-ncbi-attributes-long-postgres non-attribute-metadata-postgres all-ncbi-attributes-long-idx all-ncbi-attributes-long-fts experimental-factor-fts-query
+
+.PHONY: postgres-pivot
+postgres-pivot: postgres-up postgres-create all-ncbi-attributes-long-postgres
+	poetry run python biosample_xmldb_sqldb/pivot_harmonized_attributes.py
+
+PHONY: postgres-create-view
+postgres-create-view: postgres-up postgres-create all-ncbi-attributes-long-postgres non-attribute-metadata-postgres
+	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -f sql/create_view.sql
+
+
+##
 
 # optionally make aggressive-clean # this deletes downloads, basex data, extracted chunks, and postgres data
 .PHONY: pre-basex-all
 pre-basex-all: setup-shared-dirs downloads/biosample_set.xml biosample-set-xml-chunks
 
 # make pre-basex-all
+# wait for that to finish, since it depends on getting BIOSAMPLE-SET-XML-CHUNK-NAMES from $(shell ls shared-chunks)
 .PHONY: basex-all
 basex-all: basex-up load-biosample-sets all-ncbi-attributes-long-file non-attribute-metadata-file 
 
-
 # make basex-all
 .PHONY: postgres-all
-postgres-all: postgres-up postgres-create all-ncbi-attributes-long-postgres non-attribute-metadata-postgres all-ncbi-attributes-long-idx all-ncbi-attributes-long-fts experimental-factor-fts-query
-	poetry run python biosample_xmldb_sqldb/pivot_harmonized_attributes.py
-	PGPASSWORD=biosample-password psql -h localhost -p 5433 -U biosample -d biosample -f sql/create_view.sql
+postgres-all: postgres-pre-pivot postgres-pivot postgres-create-view
+
+
+# <Link type="entrez" target="bioproject" label="PRJNA656268">656268</Link>
