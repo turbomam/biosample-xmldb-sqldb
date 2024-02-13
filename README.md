@@ -1,7 +1,9 @@
 # biosample-xmldb-sqldb
 Tools for loading [NCBI BioSample](https://www.ncbi.nlm.nih.gov/biosample) into an XML database and then transforming that into a SQL database
 
-- _This is a replacement for https://github.com/turbomam/biosample-basex (which required a more complicated system setup and used SQLite as an intermediary between XML and Postgres)_
+- _This is a replacement for https://github.com/turbomam/biosample-basex_
+    - _required a more complicated system setup_
+    - _used SQLite as an intermediary between XML and Postgres_
 - _Inspired by https://github.com/INCATools/biosample-analysis_
 - _Could include tools for normalizing NCBI BioSample values in the future._
 
