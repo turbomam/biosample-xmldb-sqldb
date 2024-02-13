@@ -21,7 +21,7 @@ If you want to **see what you're getting yourself into** first, try `make --dry-
 
 The Makefile provides lots of hints about how to interact with the databases from the host.
 
-The Makefile in this repo downloads **all** of NCBI's BioSample collection and unpacks it, using ~ 100 GB of storage. However, due tothe `--biosamples-per-file` limit,
+The Makefile in this repo downloads **all** of NCBI's BioSample collection and unpacks it, using ~ 100 GB of storage. However, due to the `--biosamples-per-file` limit,
 it only populates a subset of the Biosamples into the XML and Postgres databases. Remove those lines to load the entire collection. That takes ~ 24 hours and requires ~ 400 GB of storage.
 
 If containers have been built or some of those files have been created, then the user could either run `make clean` and start over **losing** all of that data,
