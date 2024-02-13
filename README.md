@@ -34,7 +34,3 @@ If containers have been built or some of those files have been created, then the
 or manually select make targets (or other commands) that pick up at the desired point. No automation is provided for that case yet.
 
 
-----
-
-To do:
-- reasonable Docker settings (CPU, RAM...)_
