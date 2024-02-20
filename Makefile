@@ -177,7 +177,7 @@ postgres-pre-pivot: postgres-up postgres-create all-ncbi-attributes-long-postgre
 .PHONY: postgres-pivot
 # postgres-up postgres-create all-ncbi-attributes-long-postgres
 postgres-pivot: 
-	$(RUN) python biosample_xmldb_sqldb/pivot_harmonized_attributes.py
+	poetry run python biosample_xmldb_sqldb/pivot_harmonized_attributes.py
 
 PHONY: postgres-create-view
 postgres-create-view: 
@@ -199,9 +199,3 @@ basex-all: basex-up load-biosample-sets all-ncbi-attributes-long-file non-attrib
 # # make basex-all
 # .PHONY: postgres-all
 # postgres-all: postgres-pre-pivot postgres-pivot postgres-create-view
-
-656268.tsv:
-	$(RUN) pivot-from-bp-id \
-		--bp-id $(basename $@) \
-		--values-from attribute_name \
-		--output $@
