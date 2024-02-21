@@ -4,11 +4,75 @@ import click
 import pprint
 
 import pandas as pd
-import psycopg2
-import psycopg2.pool
+
 import lxml.etree as ET
 import logging
 import yaml
+
+from sqlalchemy import create_engine
+
+# Define the connection string
+db_settings = {
+    "host": "localhost",
+    "port": 5433,
+    "dbname": "biosample",
+    "user": "biosample",
+    "password": "biosample-password"
+}
+
+# Construct the connection string
+connection_string = f"postgresql://{db_settings['user']}:{db_settings['password']}@{db_settings['host']}:{db_settings['port']}/{db_settings['dbname']}"
+
+# Create the SQLAlchemy engine
+engine = create_engine(connection_string)
+
+path_counts = {}
+
+
+def filter_attribute_values(path_counts):
+    filtered_common_attribute_values = path_counts.copy()
+    for path, path_data in filtered_common_attribute_values.items():
+        if "common_attribute_values" in path_data and path_data["common_attribute_values"]:
+            attributes_data = path_data.get("attributes", {})
+            for attribute, values in list(path_data["common_attribute_values"].items()):
+                for value, count in list(values.items()):
+                    if count / attributes_data[attribute] < 0.05:
+                        del path_data["common_attribute_values"][attribute][value]
+    return filtered_common_attribute_values
+
+
+def count_paths_with_text(node, path):
+    if len(node) == 0:
+        path_str = "/".join(path)
+
+        if path_str not in path_counts:
+            path_counts[path_str] = {"count": 0, "attributes": {}, "text_count": 0, "common_attribute_values": {}}
+
+        path_counts[path_str]["count"] += 1
+
+        if node.text and node.text.strip():
+            path_counts[path_str]["text_count"] += 1
+
+        for key, value in node.attrib.items():
+            path_counts[path_str]["attributes"][key] = 1 + path_counts[path_str]["attributes"].get(key, 0)
+            if "/".join(path + [key]) in (
+                    'BioSample/Ids/Id/db',
+                    'BioSample/Ids/Id/db_label',
+                    'BioSample/Ids/Id/is_hidden',
+                    'BioSample/Ids/Id/is_primary',
+                    'BioSample/Links/Link/label',
+                    'BioSample/Links/Link/target',
+                    'BioSample/Links/Link/type',
+            ):
+                if key not in path_counts[path_str]["common_attribute_values"]:
+                    path_counts[path_str]["common_attribute_values"][key] = {}
+                if value not in path_counts[path_str]["common_attribute_values"][key]:
+                    path_counts[path_str]["common_attribute_values"][key][value] = 1
+                else:
+                    path_counts[path_str]["common_attribute_values"][key][value] += 1
+    else:
+        for child in node:
+            count_paths_with_text(child, path + [child.tag])
 
 
 @click.command()
@@ -32,111 +96,21 @@ def main(biosample_file, max_biosamples, batch_size):
 
     logger.info(f'Processing biosamples from: {biosample_file}')
 
-    # Database Connection Pool Configuration
-    DB_CONN_POOL_MIN = 5
-    DB_CONN_POOL_MAX = 20
-
-    # Database Connection Pool Initialization
-    db_conn_pool = psycopg2.pool.SimpleConnectionPool(
-        DB_CONN_POOL_MIN,
-        DB_CONN_POOL_MAX,
-        host="localhost",
-        port=5433,
-        dbname="biosample",
-        user="biosample",
-        password="biosample-password"
-    )
-
-    # Function to get a connection from the pool
-    def get_connection():
-        return db_conn_pool.getconn()
-
-    # Function to release a connection back to the pool
-    def release_connection(conn):
-        db_conn_pool.putconn(conn)
-
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS ncbi_attributes_all_long (
-            raw_id INTEGER,
-            attribute_name TEXT,
-            harmonized_name TEXT,
-            display_name TEXT,
-            unit TEXT,
-            value TEXT
-        )
-    """)
-
-    cur.execute("""
-      CREATE TABLE IF NOT EXISTS non_attribute_metadata(
-        id TEXT,
-        accession TEXT,
-        raw_id INTEGER PRIMARY KEY,
-        primary_id TEXT,
-        sra_id TEXT,
-        bp_id TEXT,
-        model TEXT,
-        package TEXT,
-        package_name TEXT,
-        status TEXT,
-        status_date TEXT,
-        taxonomy_id TEXT,
-        taxonomy_name TEXT,
-        title TEXT,
-        samp_name TEXT,
-        paragraph TEXT
-      )
-    """)
-
     context = ET.iterparse(biosample_file, tag="BioSample")
 
     biosample_count = 0
     batch_num = 1
 
-    path_counts = {}
-
     start_time = time.time()
 
-    attributes_frame = pd.DataFrame(columns=["raw_id", "attribute_name", "harmonized_name", "display_name", "unit", "value"])
+    attributes_frame = pd.DataFrame(
+        columns=["raw_id", "attribute_name", "harmonized_name", "display_name", "unit", "value"])
+
+    non_attribute_frame = pd.DataFrame()
 
     for event, elem in context:
         if elem.tag == 'BioSample':
             root = ET.fromstring(ET.tostring(elem))
-
-            def count_paths_with_text(node, path):
-                if len(node) == 0:
-                    path_str = "/".join(path)
-
-                    if path_str not in path_counts:
-                        path_counts[path_str] = {"count": 0, "attributes": {}, "text_count": 0, "attribute_values": {}}
-
-                    path_counts[path_str]["count"] += 1
-
-                    if node.text and node.text.strip():
-                        path_counts[path_str]["text_count"] += 1
-
-                    for key, value in node.attrib.items():
-                        path_counts[path_str]["attributes"][key] = 1 + path_counts[path_str]["attributes"].get(key, 0)
-                        if "/".join(path + [key]) in (
-                                'BioSample/Ids/Id/db',
-                                'BioSample/Ids/Id/db_label',
-                                'BioSample/Ids/Id/is_hidden',
-                                'BioSample/Ids/Id/is_primary',
-                                'BioSample/Links/Link/label',
-                                'BioSample/Links/Link/target',
-                                'BioSample/Links/Link/type',
-                        ):
-                            if key not in path_counts[path_str]["attribute_values"]:
-                                path_counts[path_str]["attribute_values"][key] = {}
-                            if value not in path_counts[path_str]["attribute_values"][key]:
-                                path_counts[path_str]["attribute_values"][key][value] = 1
-                            else:
-                                path_counts[path_str]["attribute_values"][key][value] += 1
-                else:
-                    for child in node:
-                        count_paths_with_text(child, path + [child.tag])
 
             count_paths_with_text(root, [root.tag])
 
@@ -153,10 +127,15 @@ def main(biosample_file, max_biosamples, batch_size):
                 logger.info(
                     f'Processed {batch_start:,} to {batch_end:,} of {max_biosamples:,} biosamples ({batch_end / max_biosamples:.2%})')
                 batch_num += 1
+                attributes_frame.to_sql("ncbi_attributes_all_long", engine, if_exists="append", index=False)
+                attributes_frame = pd.DataFrame(
+                    columns=["raw_id", "attribute_name", "harmonized_name", "display_name", "unit", "value"])
+                non_attribute_frame.to_sql("non_attribute_metadata", engine, if_exists="append", index=False)
+                non_attribute_frame = pd.DataFrame()
 
             raw_id = int(elem.attrib["id"])
 
-            attributes_rows = [] # list of tuples. each tuple is about one attribute. the list is about one biosample.
+            attributes_rows = []  # list of tuples. each tuple is about one attribute. the list is about one biosample.
 
             for attribute in elem.findall("Attributes/Attribute"):
                 attribute_name = attribute.attrib["attribute_name"]
@@ -167,16 +146,11 @@ def main(biosample_file, max_biosamples, batch_size):
 
                 attributes_rows.append((raw_id, attribute_name, harmonized_name, display_name, unit, value))
 
-            temp_frame = pd.DataFrame(attributes_rows, columns=["raw_id", "attribute_name", "harmonized_name", "display_name", "unit", "value"])
-            # print(attributes_frame)
-            # add temp_frame to attributes_frame
-            attributes_frame = pd.concat([attributes_frame, temp_frame], ignore_index=True)
-            # print(attributes_frame)
+            temp_frame = pd.DataFrame(attributes_rows,
+                                      columns=["raw_id", "attribute_name", "harmonized_name", "display_name", "unit",
+                                               "value"])
 
-            cur.executemany("""
-                INSERT INTO ncbi_attributes_all_long (raw_id, attribute_name, harmonized_name, display_name, unit, value)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, attributes_rows)
+            attributes_frame = pd.concat([attributes_frame, temp_frame], ignore_index=True)
 
             accession = str(elem.attrib["accession"])
 
@@ -309,21 +283,31 @@ def main(biosample_file, max_biosamples, batch_size):
             else:
                 samp_name = None
 
-            cur.execute("""
-               INSERT INTO non_attribute_metadata
-               (raw_id, accession, primary_id, id, sra_id, bp_id, model, package, package_name, status, status_date, taxonomy_id, taxonomy_name, title, samp_name, paragraph)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-             """, (
-                raw_id, accession, primary_id, prefixed_id, sra_id, bp_id, model, package, package_name, status,
-                status_date, taxonomy_id, taxonomy_name, title, samp_name, paragraph))
-
-            conn.commit()
-
             elem.clear()
 
-    logger.info('Done parsing biosamples')
+            non_attribute_dict = {
+                "raw_id": raw_id,
+                "accession": accession,
+                "bp_id": bp_id,
+                "model": model,
+                "package": package,
+                "package_name": package_name,
+                "paragraph": paragraph,
+                "prefixed_id": prefixed_id,
+                "primary_id": primary_id,
+                "samp_name": samp_name,
+                "sra_id": sra_id,
+                "status": status,
+                "status_date": status_date,
+                "taxonomy_id": taxonomy_id,
+                "taxonomy_name": taxonomy_name,
+                "title": title,
+            }
 
-    conn.close()
+            # add non_attribute_dict to non_attribute_frame
+            non_attribute_frame = pd.concat([non_attribute_frame, pd.DataFrame([non_attribute_dict])])
+
+    logger.info('Done parsing biosamples')
 
     # Save the current time at the end of the loop
     end_time = time.time()
@@ -334,24 +318,13 @@ def main(biosample_file, max_biosamples, batch_size):
     # Print the difference
     print("Elapsed time:", elapsed_time, "seconds")
 
-    def filter_attribute_values(path_counts):
-        filtered_attribute_values = path_counts.copy()
-        for path, path_data in filtered_attribute_values.items():
-            if "attribute_values" in path_data and path_data["attribute_values"]:
-                attributes_data = path_data.get("attributes", {})
-                for attribute, values in list(path_data["attribute_values"].items()):
-                    for value, count in list(values.items()):
-                        if count / attributes_data[attribute] < 0.05:
-                            del path_data["attribute_values"][attribute][value]
-        return filtered_attribute_values
-
     filtered_path_counts = filter_attribute_values(path_counts)
 
     sorted_paths = {path: filtered_path_counts[path] for path in sorted(filtered_path_counts.keys())}
 
-    yaml_string = yaml.dump(sorted_paths, default_flow_style=False)
+    # dump the sorted paths to a yaml file
     with open("path_counts.yaml", "w") as f:
-        f.write(yaml_string)
+        yaml.dump(sorted_paths, f, default_flow_style=False)
 
     logger.info('Done parsing biosamples')
 
