@@ -78,7 +78,7 @@ def count_paths_with_text(node, path):
 @click.command()
 @click.option('--biosample-file', type=str, default="../downloads/biosample_set.xml",
               help='Path to the BioSample XML file.')
-@click.option('--max-biosamples', type=int, default=50_000, help='Maximum number of biosamples to process.')
+@click.option('--max-biosamples', type=int, default=50_000_000, help='Maximum number of biosamples to process.')
 @click.option('--batch-size', type=int, default=1_000, help='Size of each batch.')
 def main(biosample_file, max_biosamples, batch_size):
     logger = logging.getLogger('biosamples')
@@ -153,21 +153,16 @@ def main(biosample_file, max_biosamples, batch_size):
             attributes_frame = pd.concat([attributes_frame, temp_frame], ignore_index=True)
 
             accession = str(elem.attrib["accession"])
+            prefixed_id = f"BIOSAMPLE:{accession}"
 
             primary_ids = []
-            prefixed_ids = []
             for id_elem in elem.findall('Ids/Id[@is_primary="1"]'):
                 if id_elem.text:
                     primary_ids.append(id_elem.text)
-                    prefixed_ids.append("BIOSAMPLE:" + id_elem.text)
             if len(primary_ids) > 0:
                 primary_id = '|||'.join(primary_ids)
             else:
                 primary_id = None
-            if len(prefixed_ids) > 0:
-                prefixed_id = '|||'.join(prefixed_ids)
-            else:
-                prefixed_id = None
 
             sra_ids = []
             for sra_id in elem.findall('Ids/Id[@db="SRA"]'):
@@ -291,7 +286,7 @@ def main(biosample_file, max_biosamples, batch_size):
                     synonym_text = synonym.text
                 if synonym.attrib.get('db'):
                     synonym_db = synonym.attrib.get('db')
-                synonyms.append(f"{synonym_text}:{synonym_db}")
+                synonyms.append(f"{synonym_db}:{synonym_text}")
             if len(synonyms) > 0:
                 synonym = '|||'.join(synonyms)
             else:
@@ -320,12 +315,54 @@ def main(biosample_file, max_biosamples, batch_size):
             else:
                 owner_url = None
 
+            table_captions = []
+            for caption in elem.findall('Description/Comment/Table/Caption'):
+                if caption.text:
+                    table_captions.append(caption.text)
+            if len(table_captions) > 0:
+                table_caption = '|||'.join(table_captions)
+            else:
+                table_caption = None
+
+            # # Count the number of Contact nodes
+            # contact_nodes = elem.findall('Owner/Contacts/Contact')
+            # num_contacts = len(contact_nodes)
+            # print(f"Number of Contact nodes: {num_contacts}")
+
+            contributor_name_cats = set()
+            for contact in elem.findall('Owner/Contacts/Contact'):
+                pretty_contact = ET.tostring(contact, encoding='unicode', method='xml', pretty_print=True)
+
+                # Extract values
+                first_name = contact.findtext('Name/First', default='')
+                middle_name = contact.findtext('Name/Middle', default='')
+                last_name = contact.findtext('Name/Last', default='')
+                lab = contact.get('lab', '')
+                email = contact.get('email', '')
+
+                # Concatenate the components
+                name_and_lab = ' '.join(filter(None, [first_name, middle_name, last_name, lab, email]))
+
+                # Store the result
+                contributor_name_cats.add(name_and_lab)
+
+                # # Print the result
+                # print(f"Individually: {name_and_lab}")
+
+            # # Print the collected strings
+            # print(len(contributor_name_cats))
+            # for name_and_lab in contributor_name_cats:
+            #     print(f"From concatenation: {name_and_lab}")
+            # make a contributors string by concatenating the elements of contributor_name_cats with "|||"
+            contributors = "|||".join(contributor_name_cats)
+
             elem.clear()
 
             non_attribute_dict = {
                 "raw_id": raw_id,
                 "accession": accession,
                 "bp_id": bp_id,
+                "contributors": contributors,
                 "model": model,
                 "owner_abbreviation": owner_abbreviation,
                 "owner_text": owner_text,
@@ -336,10 +373,11 @@ def main(biosample_file, max_biosamples, batch_size):
                 "prefixed_id": prefixed_id,
                 "primary_id": primary_id,
                 "samp_name": samp_name,
-                "synonym": synonym,
                 "sra_id": sra_id,
                 "status": status,
                 "status_date": status_date,
+                "synonym": synonym,
+                "table_caption": table_caption,
                 "taxonomy_id": taxonomy_id,
                 "taxonomy_name": taxonomy_name,
                 "title": title,
@@ -347,6 +385,9 @@ def main(biosample_file, max_biosamples, batch_size):
 
             # add non_attribute_dict to non_attribute_frame
             non_attribute_frame = pd.concat([non_attribute_frame, pd.DataFrame([non_attribute_dict])])
+
+    attributes_frame.to_sql("ncbi_attributes_all_long", engine, if_exists="append", index=False)
+    non_attribute_frame.to_sql("non_attribute_metadata", engine, if_exists="append", index=False)
 
     logger.info('Done parsing biosamples')
 
