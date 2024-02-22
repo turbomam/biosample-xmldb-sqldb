@@ -125,7 +125,7 @@ def main(biosample_file, max_biosamples, batch_size):
                 batch_start = batch_num * batch_size - batch_size + 1
                 batch_end = min(biosample_count, max_biosamples)
                 logger.info(
-                    f'Processed {batch_start:,} to {batch_end:,} of {max_biosamples:,} biosamples ({batch_end / max_biosamples:.2%})')
+                    f'Processed {batch_start:,} to {batch_end:,} of {max_biosamples:,} requested BioSamples ({batch_end / max_biosamples:.2%})')
                 batch_num += 1
                 attributes_frame.to_sql("ncbi_attributes_all_long", engine, if_exists="append", index=False)
                 attributes_frame = pd.DataFrame(

@@ -1,0 +1,157 @@
+BioSample/Attributes:
+  attributes: {}
+  common_attribute_values: {}
+  count: 101010
+  text_count: 0
+BioSample/Attributes/Attribute:
+  attributes:
+    attribute_name: 550590193
+    display_name: 337614841
+    harmonized_name: 337614841
+    unit: 72920
+  common_attribute_values: {}
+  count: 550590193
+  text_count: 550034820
+BioSample/Curation:
+  attributes:
+    curation_date: 13994
+    curation_status: 13994
+  common_attribute_values: {}
+  count: 13994
+  text_count: 0
+BioSample/Description/Comment/Paragraph:
+  attributes: {}
+  common_attribute_values: {}
+  count: 10544963
+  text_count: 10540133
+BioSample/Description/Comment/Table/Body/Row/Cell:
+  attributes: {}
+  common_attribute_values: {}
+  count: 4320320
+  text_count: 3837674
+BioSample/Description/Comment/Table/Caption:
+  attributes: {}
+  common_attribute_values: {}
+  count: 35917
+  text_count: 35917
+BioSample/Description/Comment/Table/Header/Cell:
+  attributes: {}
+  common_attribute_values: {}
+  count: 316544
+  text_count: 315364
+BioSample/Description/Organism:
+  attributes:
+    taxonomy_id: 7610764
+    taxonomy_name: 7610764
+  common_attribute_values: {}
+  count: 7610764
+  text_count: 0
+BioSample/Description/Organism/OrganismName:
+  attributes: {}
+  common_attribute_values: {}
+  count: 29941038
+  text_count: 29933320
+BioSample/Description/Synonym:
+  attributes:
+    db: 385583
+  common_attribute_values: {}
+  count: 385583
+  text_count: 385583
+BioSample/Description/Title:
+  attributes: {}
+  common_attribute_values: {}
+  count: 37551802
+  text_count: 37551802
+BioSample/Ids/Id:
+  attributes:
+    db: 81649113
+    db_label: 18469005
+    is_hidden: 6773628
+    is_primary: 37551802
+  common_attribute_values:
+    db:
+      BioSample: 37552774
+      GEO: 4403740
+      SRA: 29103344
+      dbGaP: 6773540
+    db_label:
+      Sample name: 18469005
+    is_hidden:
+      '1': 6773628
+    is_primary:
+      '1': 37551802
+  count: 92899607
+  text_count: 92899607
+BioSample/Links:
+  attributes: {}
+  common_attribute_values: {}
+  count: 1352826
+  text_count: 0
+BioSample/Links/Link:
+  attributes:
+    label: 22612980
+    submission_id: 94
+    target: 18029528
+    type: 22677731
+  common_attribute_values:
+    label: {}
+    target:
+      bioproject: 17983061
+    type:
+      entrez: 18029526
+      url: 4648205
+  count: 22677731
+  text_count: 22669880
+BioSample/Models/Model:
+  attributes:
+    version: 103920
+  common_attribute_values: {}
+  count: 39391778
+  text_count: 39391778
+BioSample/Owner/Contacts/Contact:
+  attributes:
+    email: 21619
+    lab: 482336
+  common_attribute_values: {}
+  count: 495590
+  text_count: 0
+BioSample/Owner/Contacts/Contact/Address/Street:
+  attributes: {}
+  common_attribute_values: {}
+  count: 66921
+  text_count: 66921
+BioSample/Owner/Contacts/Contact/Name/First:
+  attributes: {}
+  common_attribute_values: {}
+  count: 14646379
+  text_count: 14646305
+BioSample/Owner/Contacts/Contact/Name/Last:
+  attributes: {}
+  common_attribute_values: {}
+  count: 14715354
+  text_count: 14713999
+BioSample/Owner/Contacts/Contact/Name/Middle:
+  attributes: {}
+  common_attribute_values: {}
+  count: 2179560
+  text_count: 2179519
+BioSample/Owner/Name:
+  attributes:
+    abbreviation: 11675575
+    url: 2672012
+  common_attribute_values: {}
+  count: 37568831
+  text_count: 30785422
+BioSample/Package:
+  attributes:
+    display_name: 37551802
+  common_attribute_values: {}
+  count: 37551802
+  text_count: 37551802
+BioSample/Status:
+  attributes:
+    status: 37551802
+    when: 37551802
+  common_attribute_values: {}
+  count: 37551802
+  text_count: 0

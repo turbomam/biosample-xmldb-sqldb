@@ -27,6 +27,16 @@
 
 -- TODO keep A and B databases (prod and stage)
 
+--time poetry run python stream_and_write.py
+--2024-02-21 18:52:52,538 Processed 37,550,001 to 37,551,000 of 50,000,000 biosamples (75.10%)
+--2024-02-21 18:52:53,673 Done parsing biosamples
+--Elapsed time: 60675.36360359192 seconds
+--2024-02-21 18:52:55,738 Done parsing biosamples
+--
+--real    1011m25.977s
+--user    970m59.386s
+--sys     1m50.840s
+
 
 select
 	nam.raw_id,
