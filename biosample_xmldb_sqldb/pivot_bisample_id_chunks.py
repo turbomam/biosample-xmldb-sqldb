@@ -7,9 +7,9 @@ import pandas as pd
 
 from sqlalchemy import create_engine, text
 
-last_id_expected = 40_000_000
-# last_id_expected = 100_000
-ids_per_chunk = 10_000
+# last_id_expected = 40_000_000
+last_id_expected = 10_000
+ids_per_chunk = 1_000
 
 # Define the connection
 db_settings = {

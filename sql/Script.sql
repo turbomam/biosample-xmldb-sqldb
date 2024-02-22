@@ -179,3 +179,19 @@ select
 	max(raw_id)
 from
 	ncbi_attributes_all_long ;
+
+select
+	max(raw_id)
+from
+	ncbi_attributes_harmonized_wide nahw ;
+
+
+select
+	harmonized_name
+from
+	ncbi_attributes_all_long naal
+where
+	harmonized_name is not null
+order by
+	harmonized_name ;
+
