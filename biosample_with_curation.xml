@@ -1,0 +1,41 @@
+<BioSample access="public" publication_date="2000-01-01T00:00:00.000" last_update="2015-01-22T10:22:09.667" submission_date="2012-03-05T13:02:31.797" id="794697" accession="SAMN00794697">
+  <Ids>
+    <Id db="BioSample" is_primary="1">SAMN00794697</Id>
+    <Id db="Coriell">ND00002</Id>
+  </Ids>
+  <Description>
+    <Title>ND00002 female affected Parkinson disease sample</Title>
+    <Organism taxonomy_id="9606" taxonomy_name="Homo sapiens"/>
+    <Comment>
+      <Paragraph>Donor subject tested negative for the G2019S(GLY2019SER) mutation in the LRRK2 gene.</Paragraph>
+    </Comment>
+  </Description>
+  <Owner>
+    <Name>Coriell</Name>
+  </Owner>
+  <Models>
+    <Model>Generic</Model>
+  </Models>
+  <Package display_name="Generic">Generic.1.0</Package>
+  <Attributes>
+    <Attribute attribute_name="cell_line" harmonized_name="cell_line" display_name="cell line">ND00002</Attribute>
+    <Attribute attribute_name="sex" harmonized_name="sex" display_name="sex">Female</Attribute>
+    <Attribute attribute_name="cell_type" harmonized_name="cell_type" display_name="cell type">B-Lymphocyte</Attribute>
+    <Attribute attribute_name="family_id" harmonized_name="family_id" display_name="family id">NINDS0003</Attribute>
+    <Attribute attribute_name="family_role" harmonized_name="family_relationship" display_name="family role">proband</Attribute>
+    <Attribute attribute_name="Race" harmonized_name="race" display_name="race">Caucasian</Attribute>
+    <Attribute attribute_name="Gene">LRRK2</Attribute>
+    <Attribute attribute_name="Age" harmonized_name="age" display_name="age">38 YR</Attribute>
+    <Attribute attribute_name="affected_by">Parkinson disease</Attribute>
+    <Attribute attribute_name="Mutation">WILDTYPE for GLY2019</Attribute>
+    <Attribute attribute_name="collection">NINDS Repository</Attribute>
+    <Attribute attribute_name="tag">Young onset parkinsons panel: caucasian subjects from north america</Attribute>
+    <Attribute attribute_name="tag">Young onset parkinsons panel: affected individuals</Attribute>
+    <Attribute attribute_name="tag">Parkinson disease</Attribute>
+  </Attributes>
+  <Links>
+    <Link type="entrez" target="omim">168600</Link>
+  </Links>
+  <Status status="live" when="2000-01-01T00:00:00.000"/>
+  <Curation curation_date="2000-01-01" curation_status="by_submitter"/>
+</BioSample>

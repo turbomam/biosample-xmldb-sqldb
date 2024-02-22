@@ -283,6 +283,43 @@ def main(biosample_file, max_biosamples, batch_size):
             else:
                 samp_name = None
 
+            synonyms = []
+            for synonym in elem.findall('Description/Synonym'):
+                synonym_db = ""
+                synonym_text = ""
+                if synonym.text:
+                    synonym_text = synonym.text
+                if synonym.attrib.get('db'):
+                    synonym_db = synonym.attrib.get('db')
+                synonyms.append(f"{synonym_text}:{synonym_db}")
+            if len(synonyms) > 0:
+                synonym = '|||'.join(synonyms)
+            else:
+                synonym = None
+
+            owner_abbreviations = []
+            owner_texts = []
+            owner_urls = []
+            for owner in elem.findall('Owner/Name'):
+                if owner.text:
+                    owner_texts.append(owner.text)
+                if owner.attrib.get('url'):
+                    owner_urls.append(owner.attrib.get('url'))
+                if owner.attrib.get('abbreviation'):
+                    owner_abbreviations.append(owner.attrib.get('abbreviation'))
+            if len(owner_abbreviations) > 0:
+                owner_abbreviation = '|||'.join(owner_abbreviations)
+            else:
+                owner_abbreviation = None
+            if len(owner_texts) > 0:
+                owner_text = '|||'.join(owner_texts)
+            else:
+                owner_text = None
+            if len(owner_urls) > 0:
+                owner_url = '|||'.join(owner_urls)
+            else:
+                owner_url = None
+
             elem.clear()
 
             non_attribute_dict = {
@@ -290,12 +327,16 @@ def main(biosample_file, max_biosamples, batch_size):
                 "accession": accession,
                 "bp_id": bp_id,
                 "model": model,
+                "owner_abbreviation": owner_abbreviation,
+                "owner_text": owner_text,
+                "owner_url": owner_url,
                 "package": package,
                 "package_name": package_name,
                 "paragraph": paragraph,
                 "prefixed_id": prefixed_id,
                 "primary_id": primary_id,
                 "samp_name": samp_name,
+                "synonym": synonym,
                 "sra_id": sra_id,
                 "status": status,
                 "status_date": status_date,

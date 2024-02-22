@@ -1,0 +1,370 @@
+<?xml version="1.0"?>
+<BioSampleSet>
+  <BioSample access="public" submission_date="2012-09-07T18:36:09.506" publication_date="2012-09-10T00:00:00.000" last_update="2023-02-06T14:16:42.245" id="1163409" accession="SAMN01163409">
+    <Ids>
+      <Id db="BioSample" is_primary="1">SAMN01163409</Id>
+      <Id db_label="Sample name">0000-0018-8002</Id>
+      <Id db="SRA">SRS362631</Id>
+    </Ids>
+    <Description>
+      <Title>Clinical isolate from Enterobacter cloacae</Title>
+      <Organism taxonomy_id="550" taxonomy_name="Enterobacter cloacae"/>
+      <Comment>
+        <Table class="Antibiogram.1.0">
+          <Caption>Antibiogram</Caption>
+          <Header>
+            <Cell>Antibiotic</Cell>
+            <Cell>Resistance phenotype</Cell>
+            <Cell>Measurement sign</Cell>
+            <Cell>Measurement</Cell>
+            <Cell>Measurement units</Cell>
+            <Cell>Laboratory typing method</Cell>
+            <Cell>Laboratory typing platform</Cell>
+            <Cell>Vendor</Cell>
+            <Cell>Laboratory typing method version or reagent</Cell>
+            <Cell>Testing standard</Cell>
+          </Header>
+          <Body>
+            <Row>
+              <Cell>tetracycline</Cell>
+              <Cell>resistant</Cell>
+              <Cell>==</Cell>
+              <Cell>10</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>chloramphenicol</Cell>
+              <Cell>resistant</Cell>
+              <Cell>==</Cell>
+              <Cell>12</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>ampicillin</Cell>
+              <Cell>resistant</Cell>
+              <Cell>==</Cell>
+              <Cell>6</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>gentamicin</Cell>
+              <Cell>susceptible</Cell>
+              <Cell>==</Cell>
+              <Cell>20</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>colistin</Cell>
+              <Cell>susceptible</Cell>
+              <Cell>==</Cell>
+              <Cell>13</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>sulfamethoxazole</Cell>
+              <Cell>intermediate</Cell>
+              <Cell>==</Cell>
+              <Cell>14</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>tobramycin</Cell>
+              <Cell>susceptible</Cell>
+              <Cell>==</Cell>
+              <Cell>20</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>cephalothin</Cell>
+              <Cell>resistant</Cell>
+              <Cell>==</Cell>
+              <Cell>6</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>trimethoprim-sulfamethoxazole</Cell>
+              <Cell>intermediate</Cell>
+              <Cell>==</Cell>
+              <Cell>15</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>amikacin</Cell>
+              <Cell>susceptible</Cell>
+              <Cell>==</Cell>
+              <Cell>22</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>ceftazidime</Cell>
+              <Cell>resistant</Cell>
+              <Cell>==</Cell>
+              <Cell>6</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>imipenem</Cell>
+              <Cell>susceptible</Cell>
+              <Cell>==</Cell>
+              <Cell>24</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>piperacillin</Cell>
+              <Cell>resistant</Cell>
+              <Cell>==</Cell>
+              <Cell>6</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>aztreonam</Cell>
+              <Cell>resistant</Cell>
+              <Cell>==</Cell>
+              <Cell>10</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>ciprofloxacin</Cell>
+              <Cell>susceptible</Cell>
+              <Cell>==</Cell>
+              <Cell>22</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>ceftriaxone</Cell>
+              <Cell>resistant</Cell>
+              <Cell>==</Cell>
+              <Cell>6</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>amoxicillin-clavulanic acid</Cell>
+              <Cell>resistant</Cell>
+              <Cell>==</Cell>
+              <Cell>8</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>cefotetan</Cell>
+              <Cell>resistant</Cell>
+              <Cell>==</Cell>
+              <Cell>6</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>cefepime</Cell>
+              <Cell>intermediate</Cell>
+              <Cell>==</Cell>
+              <Cell>15</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>meropenem</Cell>
+              <Cell>intermediate</Cell>
+              <Cell>==</Cell>
+              <Cell>21</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>levofloxacin</Cell>
+              <Cell>susceptible</Cell>
+              <Cell>==</Cell>
+              <Cell>20</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>ertapenem</Cell>
+              <Cell>resistant</Cell>
+              <Cell>==</Cell>
+              <Cell>16</Cell>
+              <Cell>mm</Cell>
+              <Cell>disk diffusion</Cell>
+              <Cell>Vitek GM-NEG card</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>missing</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>imipenem</Cell>
+              <Cell>susceptible</Cell>
+              <Cell>==</Cell>
+              <Cell>0.38</Cell>
+              <Cell>mg/L</Cell>
+              <Cell>MIC</Cell>
+              <Cell>missing</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>E-Test</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>meropenem</Cell>
+              <Cell>susceptible</Cell>
+              <Cell>==</Cell>
+              <Cell>0.38</Cell>
+              <Cell>mg/L</Cell>
+              <Cell>MIC</Cell>
+              <Cell>missing</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>E-Test</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+            <Row>
+              <Cell>ertapenem</Cell>
+              <Cell>resistant</Cell>
+              <Cell>==</Cell>
+              <Cell>4</Cell>
+              <Cell>mg/L</Cell>
+              <Cell>MIC</Cell>
+              <Cell>missing</Cell>
+              <Cell>Biom&#xE9;rieux</Cell>
+              <Cell>E-Test</Cell>
+              <Cell>CLSI</Cell>
+            </Row>
+          </Body>
+        </Table>
+      </Comment>
+    </Description>
+    <Owner>
+      <Name url="http://microbiome.partners.org/">Brigham &amp; Women's Hospital, Harvard Medical School</Name>
+      <Contacts>
+        <Contact email="lbry@partners.org">
+          <Name>
+            <First>Lynn</First>
+            <Last>Bry</Last>
+          </Name>
+        </Contact>
+      </Contacts>
+    </Owner>
+    <Models>
+      <Model>Pathogen.ba-cl</Model>
+    </Models>
+    <Package display_name="Pathogen: clinical or host-associated; version 1.0">Pathogen.cl.1.0</Package>
+    <Attributes>
+      <Attribute attribute_name="geo_loc_name" harmonized_name="geo_loc_name" display_name="geographic location">USA: Boston</Attribute>
+      <Attribute attribute_name="lat_lon" harmonized_name="lat_lon" display_name="latitude and longitude">missing</Attribute>
+      <Attribute attribute_name="collection_date" harmonized_name="collection_date" display_name="collection date">2012</Attribute>
+      <Attribute attribute_name="Culturing Laboratory">Clinical Microbiology Laboratory: Brigham &amp; Women's Hospital,75 Francis Street, Boston, MA, 02115</Attribute>
+      <Attribute attribute_name="collected-by" harmonized_name="collected_by" display_name="collected by">BWH Clinical Microbiology Lab</Attribute>
+      <Attribute attribute_name="CLIA Certified">Yes</Attribute>
+      <Attribute attribute_name="IRB Protocol">2011-P-002883: Partners Healthcare, Inc.: Lynn Bry, MD, PhD</Attribute>
+      <Attribute attribute_name="StudyID">T0133</Attribute>
+      <Attribute attribute_name="Typing Method">Vitek GM-NEG card</Attribute>
+      <Attribute attribute_name="Typing Kit Vendor">Biomerieux</Attribute>
+      <Attribute attribute_name="specific_host" harmonized_name="host" display_name="host">Homo sapiens</Attribute>
+      <Attribute attribute_name="isolation-source" harmonized_name="isolation_source" display_name="isolation source">blood</Attribute>
+      <Attribute attribute_name="host-disease" harmonized_name="host_disease" display_name="host disease">sepsis</Attribute>
+      <Attribute attribute_name="isolate" harmonized_name="isolate" display_name="isolate">SBJ_7612</Attribute>
+      <Attribute attribute_name="label" harmonized_name="label" display_name="label">0000-0018-8002</Attribute>
+      <Attribute attribute_name="host_tissue_sampled" harmonized_name="host_tissue_sampled" display_name="host tissue sampled">blood</Attribute>
+    </Attributes>
+    <Links>
+      <Link type="entrez" target="bioproject" label="PRJNA174687">174687</Link>
+    </Links>
+    <Status status="live" when="2012-09-10T13:14:10.383"/>
+  </BioSample>
+</BioSampleSet>
