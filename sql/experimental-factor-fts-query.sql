@@ -1,8 +1,18 @@
 select
-	distinct attribute_name,
-	harmonized_name
+	attribute_name,
+	harmonized_name,
+	display_name,
+	COUNT(*) as match_count
 from
-	all_ncbi_attributes_long
+	public.ncbi_attributes_all_long
 where
-	to_tsvector('english', attribute_name) 
-	@@ phraseto_tsquery('english', 'experimental factor');
+	to_tsvector('english'::regconfig,
+	((((attribute_name || ' '::text) || harmonized_name) || ' '::text) || display_name)) @@
+    to_tsquery('english',
+	'''experimental factor'''::text)
+group by
+	attribute_name,
+	harmonized_name,
+	display_name
+order by
+	count(*) desc ;
