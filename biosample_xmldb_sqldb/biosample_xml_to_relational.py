@@ -1,14 +1,10 @@
+import logging
 import time
 
 import click
-import pprint
-
-import pandas as pd
-
 import lxml.etree as ET
-import logging
+import pandas as pd
 import yaml
-
 from sqlalchemy import create_engine
 
 # Define the connection string
