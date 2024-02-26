@@ -11,6 +11,8 @@ IMAGE_NAME=postgres
 PASSWORD=biosample-password
 SCHEMA=public
 USER=biosample
+XML_FILE=downloads/biosample_set.xml
+
 
 # Default target
 .PHONY: all 
@@ -59,3 +61,20 @@ postgres-create:
 	docker exec -it $(CONTAINER_NAME) psql -U $(ADMIN_USER) -d $(DATABASE) -c "GRANT CREATE ON SCHEMA $(SCHEMA) TO $(USER);"
 	PGPASSWORD=$(PASSWORD) psql -h $(HOST) -p $(HOST_PORT) -U $(USER) -d $(DATABASE) -f sql/setup.sql
 	sleep 10
+
+.PHONY: postgres-load
+postgres-load:
+	$(RUN) python biosample_xmldb_sqldb/biosample_xml_to_relational.py \
+		--biosample-file $(XML_FILE) \
+		--max-biosamples 10000 \
+		--batch-size 1000
+
+.PHONY: postgres-pivot
+postgres-pivot:
+	$(RUN) python biosample_xmldb_sqldb/streaming_pivot_bisample_id_chunks.py \
+		--last-id-expected 10000 \
+		--ids-per-chunk 1000
+
+.PHONY: postgres-post-pivot-view
+postgres-post-pivot-view:
+	PGPASSWORD=$(PASSWORD) psql -h $(HOST) -p $(HOST_PORT) -U $(USER) -d $(DATABASE) -f sql/post-pivot-view.sql
