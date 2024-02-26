@@ -1,26 +1,32 @@
 import logging
+import os
 import time
 
 import click
 import lxml.etree as ET
 import pandas as pd
 import yaml
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
+# Load environment variables from local/.env file
+dotenv_path = os.path.join("local", ".env")
+load_dotenv(dotenv_path)
+
 # Define the connection string
-db_settings = {
-    "host": "localhost",
-    "port": 5433,
-    "dbname": "biosample",
-    "user": "biosample",
-    "password": "biosample-password"
+DB_SETTINGS = {
+    "host": os.getenv("DB_HOST"),
+    "port": int(os.getenv("DB_PORT")),
+    "dbname": os.getenv("DB_NAME"),
+    "user": os.getenv("DB_USER"),
+    "password": os.getenv("DB_PASSWORD")
 }
 
 # Construct the connection string
-connection_string = f"postgresql://{db_settings['user']}:{db_settings['password']}@{db_settings['host']}:{db_settings['port']}/{db_settings['dbname']}"
+CONNECTION_STRING = f"postgresql://{DB_SETTINGS['user']}:{DB_SETTINGS['password']}@{DB_SETTINGS['host']}:{DB_SETTINGS['port']}/{DB_SETTINGS['dbname']}"
 
 # Create the SQLAlchemy engine
-engine = create_engine(connection_string)
+engine = create_engine(CONNECTION_STRING)
 
 path_counts = {}
 

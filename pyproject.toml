@@ -15,6 +15,7 @@ psycopg2-binary = "^2.9.9"
 biopython = "^1.83"
 lxml = "^5.1.0"
 pyyaml = "^6.0.1"
+python-dotenv = "^1.0.1"
 
 
 [build-system]
