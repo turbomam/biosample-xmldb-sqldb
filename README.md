@@ -46,7 +46,7 @@ The key tables populated are:
 
 **ncbi_attributes_harmonized_wide**
 
-This view combines the two tables described above, avoiding the need to explicitly join them in analytical queries. **It is assume that most ETLs will use this view as input.**
+This view combines the two tables described above, avoiding the need to explicitly join them in analytical queries. **It is assumed that most ETLs will use this view as input.**
 
 ## Overview
 
@@ -74,56 +74,47 @@ Don't forget to run database operations inside a [screen](https://www.gnu.org/so
 The main pipeline tasks are defined in the Makefile and can be run as:
 
 ```
-make postgres-up         # Start PostgreSQL container  
-make postgres-create     # Create DB and user
-make postgres-load       # Load data from BioSample XML    
-make postgres-pivot      # Pivot attribute data
-make postgres-post-pivot-view # Create a view of the  pivoted data
+make downloads/biosample_set.xml # Download the BioSample XML dataset
+make postgres-up                 # Start PostgreSQL container  
+make postgres-create             # Create DB and user
+make postgres-load               # Load data from BioSample XML    
+make postgres-pivot              # Pivot attribute data
+make postgres-post-pivot-view    # Create a view of the  pivoted data
 ```
 
-The pipeline uses a local `.env` file for database credentials and connections string.
+The pipeline uses a local `.env` file for database credentials and connections string. A template is provided.
+
+The Makefile downloads **all** of NCBI's BioSample collection and unpacks it, using ~ 100 GB of disk space. The `max-biosamples` option provides support for a quick test/partial load mode. The entire build of takes ~ 24 hours and requires an additional ~ 100 GB for the PostgreSQL tables and indices.
 
 ## References
 
-- _This is a replacement for https://github.com/turbomam/biosample-basex_
-    - _required a more complicated system setup_
-    - _used SQLite as an intermediary between XML and Postgres_
-- _Inspired by https://github.com/INCATools/biosample-analysis_
-
-
-The Makefile downloads **all** of NCBI's BioSample collection and unpacks it, using ~ 100 GB of storage. However, due to the `--biosamples-per-file` limit,
-it only populates a subset of the Biosamples into the XML and Postgres databases. Remove those lines to load the entire collection. That takes ~ 24 hours and requires ~ 400 GB of storage.
+- This is a replacement for https://github.com/turbomam/biosample-basex
+    - required a more complicated system setup
+    - used SQLite as an intermediary between XML and Postgres
+- Inspired by https://github.com/INCATools/biosample-analysis
 
 
 ## NCBI Attributes vs XML Attributes
 
-"NCBI Attributes" refers to specific XML paths under the BioSample records, while "XML attributes" refers to the general attribute properties on XML elements.
+You will see mentions of the word attributes in two separate and unfortunately confusing contexts:
+"NCBI Attributes" refers to specific XML paths NCBI has used under the BioSample records,.
+"XML attributes" refers to the very basic feature offered by the XML language, in which key/value paris are asserted within a node's opening tag.
 
 The BioSample XML structure contains a distinction between:
 
 **NCBI Attributes** 
 
 - Specific `<Attribute>` nodes under `<Attributes>` in each BioSample  
-- Contain metadata like measurement values, units, display names etc
+- Contain Biosample attributes like depth, env_broad_scale, etc.
 - Extracted into the `ncbi_attributes_all_long` table
 
 **XML Attributes**
 
 - The standard attributes associated with each XML node
-- For example `id`, `name`, `url` attributes on XML elements
-- Often used to store metadata like identifiers
+- For example `id`, `name`, `url`, etc.
+- Attributes are captured from nodes like `Id`, `Link`, etc. as well at the <BioSample> nodes themselves.
+- Extracted into the `non_attribute_metadata` table
 
-The Python code extracts both:
-
-- The NCBI Attributes are parsed from the dedicated nodes
-- The XML attributes are also captured from nodes like `BioSample`, `Id`, `Link` etc
-
-So in summary:
-
-- **NCBI Attributes**: Dedicated metadata nodes under each BioSample
-- **XML Attributes**: Standard attributes on XML elements
-
-The scripts extract and store both into the database tables.
 
 ## Performance
 
