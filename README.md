@@ -145,7 +145,7 @@ That file can be downloaded from https://portal.nersc.gov/project/m3513/biosampl
 
 The direct link is https://portal.nersc.gov/project/m3513/biosample/biosample_postgres_20240226.dmp.gz  
 
-# Compared to previous methods that included the BaseX XML database
+# Compared to previous methods using the BaseX XML database
 
 ## Advantages
 
