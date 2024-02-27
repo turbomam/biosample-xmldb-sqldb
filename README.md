@@ -121,10 +121,12 @@ The BioSample XML structure contains a distinction between:
 >sys     0m33.311s
 
 `tail -n 100 downloads/biosample_set.xml  | grep '<BioSample'`
+```
 > <BioSample access="public" publication_date="2024-02-22T00:00:00.000" last_update="2024-02-22T01:55:09.056" submission_date="2024-02-22T01:55:09.056" 
 > id="40028294" accession="SAMN40028294">
 > <BioSample access="public" publication_date="2024-02-22T00:00:00.000" last_update="2024-02-22T02:28:19.950" submission_date="2024-02-22T02:22:05.510" 
 > id="40028511" accession="SAMN40028511">
+```
 
 `time make postgres-load`
 >2024-02-21 18:52:52,538 Processed 37,550,001 to 37,551,000 of 50,000,000 biosamples (75.10%)
