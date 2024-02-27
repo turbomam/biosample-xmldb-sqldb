@@ -161,12 +161,19 @@ The direct link is https://portal.nersc.gov/project/m3513/biosample/biosample_po
 
 # TODOs:
 
-- Could include tools for normalizing  the values of `harmonized_name` attributes. For example, converting all `depth`s into a single numeric column with a consistent unit. May benefit from quantulum3.
+_See also https://github.com/turbomam/biosample-xmldb-sqldb/issues_
+
+- Normalize the values of `harmonized_name` attributes. For example, converting all `depth`s into a single numeric column with a consistent unit. May benefit from quantulum3.
+- Normalize `env_broad_scale`
+  - merge in envo.db.gz from https://s3.amazonaws.com/bbop-sqlite
+- Normalize `model`, `package` and `package_name` to match MIxS [Extensions](https://genomicsstandardsconsortium.github.io/mixs/#extensions) and [Checklists](https://genomicsstandardsconsortium.github.io/mixs/#checklists)
+- Extract, flatten and load [BioProject](https://ftp.ncbi.nlm.nih.gov/bioproject/)'s `bioproject.xml` or some SRA metadata?
 - special parsing for paragraph keywords?
-- think of a way to extract XML **tables** into something that could go into Postgres
+- think of a way to extract `BioSample/Description/Comment/Table` paths into something that could go into Postgres
     - like biosample-caption-row-value?
-- set a lower threshold for id and link attribute detection or just write all of them to a different table?
+- when creating assets/path_counts.yaml, set a lower threshold for id and link attribute detection or just write all of them to a different table?
 - write assets/path_counts.yaml to file when inserting every chunk of rows into Postgres?
+- document which paths aren't loaded into Postgres
 - could `biosample_xml_to_relational.py` and `streaming_pivot_bisample_id_chunks.py` be interleaved?
 - check though several columns to see if '|||' is being used as a delimiter
     - what other delimiters could we use?
