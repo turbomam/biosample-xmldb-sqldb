@@ -20,13 +20,13 @@ The key components are:
 
 The key scripts are:
 
-**biosample_xml_to_relational.py**
+### biosample_xml_to_relational.py
 
 - Extracts BioSample, attribute, and metadata into normalized PostgreSQL tables
 - Each BioSample is parsed into rows in the `ncbi_attributes_all_long` and `non_attribute_metadata` tables  
 - Supports batching and resuming
 
-**streaming_pivot_bisample_id_chunks.py**
+### streaming_pivot_bisample_id_chunks.py
 
 - Pivots the attribute data into a wide table grouped by `raw_id` 
 - Streams data in chunks by BioSample ID range to control memory usage
@@ -36,17 +36,17 @@ The key scripts are:
 
 The key tables populated are:
 
-**ncbi_attributes_all_long**
+### ncbi_attributes_all_long
+Long format table with one row for each NCBI attribute of each Biosample.
 
-- Long format attributes table (BioSample ID, attribute details)
+### ncbi_attributes_harmonized_wide
+A pivot of `ncbi_attributes_all_long` with columns for each harmonized attribute and one row per Biosample. The values include units if available.
 
-**non_attribute_metadata** 
+### non_attribute_metadata
+One row of metadata per Biosample. These columns are populated from XML paths other than `Biosample/Attributes/Attribute`
 
-- Related metadata for each BioSample
-
-**ncbi_attributes_harmonized_wide**
-
-This view combines the two tables described above, avoiding the need to explicitly join them in analytical queries. **It is assumed that most ETLs will use this view as input.**
+### ncbi_attributes_harmonized_wide
+This **view** combines the two tables described above, avoiding the need to explicitly join them in analytical queries. **It is assumed that most ETLs will use this view as input.**
 
 ## Overview
 
@@ -60,7 +60,7 @@ The pipeline includes the following phases:
 
 The pipeline is orchestrated end-to-end via `make`, with targets for each stage.
 
-**Requirements**
+### Requirements
 
 - Docker is installed and running
 - Python 3.9+ is installed
@@ -86,7 +86,7 @@ The pipeline uses a `local/.env` file for Postgres credentials and connections s
 
 The Makefile downloads **all** of NCBI's BioSample collection and unpacks it, using ~ 100 GB of disk space. The `max-biosamples` option provides support for a quick test/partial load mode. The entire build takes ~ 24 hours and requires an additional ~ 100 GB for the PostgreSQL tables and indices.
 
-## NCBI Attributes vs XML Attributes
+## Discussion of NCBI "Attributes" and XML "Attributes"
 
 You will see mentions of the word attributes in two separate and unfortunately confusing contexts:
 "NCBI Attributes" refers to specific XML paths NCBI has used under the BioSample records.
@@ -94,40 +94,23 @@ You will see mentions of the word attributes in two separate and unfortunately c
 
 The BioSample XML structure contains a distinction between:
 
-**NCBI Attributes** 
+### NCBI Attributes
 
-- Specific `<Attribute>` nodes under `<Attributes>` in each BioSample  
+- Specific `<Attribute>` nodes in a Biosample's `<Attributes>` path  
 - Contain Biosample attributes like depth, env_broad_scale, etc.
 - Extracted into the `ncbi_attributes_all_long` table
 
-**XML Attributes**
+### XML Attributes
 
 - The standard attributes associated with each XML node
 - For example `id`, `name`, `url`, etc.
 - Attributes are captured from nodes like `Id`, `Link`, etc. as well as the <BioSample> nodes themselves.
 - Extracted into the `non_attribute_metadata` table
 
-## Additional resoruces
-
-This repo captures Biosample data from NCBI. Nominally, it (and [EBI BioSamples](https://www.ebi.ac.uk/biosamples/)) follow The Genomic Standards Consortiums MIxS standards.
-In reality, all three have significant differences in what attributes they expect for Biosamples of different types, and they take diffeerent appraoches to validating the attribute values.
-
-- https://genomicsstandardsconsortium.github.io/mixs/
-- https://www.insdc.org/submitting-standards/
-    - https://www.insdc.org/submitting-standards/country-qualifier-vocabulary/
-    - https://www.insdc.org/submitting-standards/missing-value-reporting/
-- https://www.ncbi.nlm.nih.gov/biosample
-    - https://www.ncbi.nlm.nih.gov/biosample/docs/
-    - https://www.ncbi.nlm.nih.gov/biosample/docs/attributes/
-    - https://www.ncbi.nlm.nih.gov/biosample/docs/attributes/?format=xml
-    - https://www.ncbi.nlm.nih.gov/biosample/docs/packages/
-    - https://www.ncbi.nlm.nih.gov/books/NBK169436/
-    - https://submit.ncbi.nlm.nih.gov/biosample/template/
-- https://www.ebi.ac.uk/biosamples/docs
-
 # Performance notes
 
-## from repo root
+_Run these commands from the root of the repo._
+
 `date && time grep -c '<BioSample' downloads/biosample_set.xml`
 
 >Thu Feb 22 17:20:39 UTC 2024
@@ -158,20 +141,56 @@ id="40028511" accession="SAMN40028511">
 
 The entire build of a 105 GB/35 Million BioSample XML dataset takes approximately 2 days. The resulting Postgres database can be dumped with `pg_dump -Fc` to a roughly 4 GB file.
 
-That file can be downloaded from https://portal.nersc.gov/project/m3513/biosample/?C=M;O=D 
+# Assets
 
-The direct link is https://portal.nersc.gov/project/m3513/biosample/biosample_postgres_20240226.dmp.gz  
+A dump of the database can be downloaded from https://portal.nersc.gov/project/m3513/biosample/?C=M;O=D 
+
+The direct link is https://portal.nersc.gov/project/m3513/biosample/biosample_postgres_20240226.dmp.gz
+
+People who have NERSC credentials can run live SQL queries against an instance of this database maintained by the National Microbiome Data Collaborative
+- Optionally create a new ssh key with [sshproxy](https://docs.nersc.gov/connect/mfa/#sshproxy)
+- Establish a tunnel
+    - if you have not created a ssh key, then omit `-i ~/.ssh/nersc` and you will be asked for your password and one-time code
+    - below, replace `<NERSC_USERNAME>` with the username NERSC assigned to you below
+    - `ssh -i ~/.ssh/nersc -L 15432:biosample-postgres-loadbalancer.mam.production.svc.spin.nersc.org:5432 <NERSC_USERNAME>@dtn01.nersc.gov
+- Connect with psql or your favorite database browser or library
+    - below, replace `<POSTGRES_PASSWORD>` with the appropriate password, obtained from @turbomam
+    - `psql postgres://biosample_guest:<POSTGRES_PASSWORD>@localhost:15432`
+ 
+Users visiting the NERSC-hosted database may see additonal tables containing metadata about MIxS and EnvO terms. Documetnation is pending. See [issue #18](https://github.com/turbomam/biosample-xmldb-sqldb/issues/18)
+- mixs_global_slots
+- entailed_edge
+- prefix
+- statements
+
+# Additional resources
+
+This repo captures Biosample data from NCBI. Nominally, it (and [EBI BioSamples](https://www.ebi.ac.uk/biosamples/)) follow The Genomic Standards Consortium’s MIxS standards.
+In reality, all three have significant differences in what attributes they expect for Biosamples of different types, and they take different approaches to validating the attribute values.
+
+- https://genomicsstandardsconsortium.github.io/mixs/
+- https://www.insdc.org/submitting-standards/
+    - https://www.insdc.org/submitting-standards/country-qualifier-vocabulary/
+    - https://www.insdc.org/submitting-standards/missing-value-reporting/
+- https://www.ncbi.nlm.nih.gov/biosample
+    - https://www.ncbi.nlm.nih.gov/biosample/docs/
+    - https://www.ncbi.nlm.nih.gov/biosample/docs/attributes/
+    - https://www.ncbi.nlm.nih.gov/biosample/docs/attributes/?format=xml
+    - https://www.ncbi.nlm.nih.gov/biosample/docs/packages/
+    - https://www.ncbi.nlm.nih.gov/books/NBK169436/
+    - https://submit.ncbi.nlm.nih.gov/biosample/template/
+- https://www.ebi.ac.uk/biosamples/docs
 
 # Compared to previous methods using the BaseX XML database
 
-## Advantages
+### Advantages
 
 - fewer steps
 - lower RAM and CPU usage
 - fewer containers
 - empty cells aren't a mixture of empty strings and NULLs
 
-## Limitation
+### Limitations
 - can't search through data from xml nodes that we didn't insert into Postgres database
     - see assets/path_counts.yaml
     - see assets/curl_biosample_xml_examples.txt
@@ -203,11 +222,9 @@ _See also https://github.com/turbomam/biosample-xmldb-sqldb/issues_
 - keep A and B Postgres databases (prod and stage)
 - remove duplicated config stuff in `local/.env` and at top of `Makefile`
 
-## References
+# References
 
 - This is a replacement for https://github.com/turbomam/biosample-basex
     - required a more complicated system setup
-    - used SQLite as an intermediary between XML and Postgres
+    - used SQLite and BaseX as required intermediaries between the XML file and the Postgres database
 - Inspired by https://github.com/INCATools/biosample-analysis
-
-
