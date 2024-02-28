@@ -108,18 +108,22 @@ The BioSample XML structure contains a distinction between:
 - Extracted into the `non_attribute_metadata` table
 
 ## Additional resoruces
+
+This repo captures Biosample data from NCBI. Nominally, it (and [EBI BioSamples](https://www.ebi.ac.uk/biosamples/)) follow The Genomic Standards Consortiums MIxS standards.
+In reality, all three have significant differences in what attributes they expect for Biosamples of different types, and they take diffeerent appraoches to validating the attribute values.
+
 - https://genomicsstandardsconsortium.github.io/mixs/
 - https://www.insdc.org/submitting-standards/
-    - https://www.insdc.org/submitting-standards/missing-value-reporting/
     - https://www.insdc.org/submitting-standards/country-qualifier-vocabulary/
+    - https://www.insdc.org/submitting-standards/missing-value-reporting/
 - https://www.ncbi.nlm.nih.gov/biosample
     - https://www.ncbi.nlm.nih.gov/biosample/docs/
     - https://www.ncbi.nlm.nih.gov/biosample/docs/attributes/
     - https://www.ncbi.nlm.nih.gov/biosample/docs/attributes/?format=xml
+    - https://www.ncbi.nlm.nih.gov/biosample/docs/packages/
     - https://www.ncbi.nlm.nih.gov/books/NBK169436/
     - https://submit.ncbi.nlm.nih.gov/biosample/template/
-    - https://www.ncbi.nlm.nih.gov/biosample/docs/packages/
-
+- https://www.ebi.ac.uk/biosamples/docs
 
 # Performance notes
 
