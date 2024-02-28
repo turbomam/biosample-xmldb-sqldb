@@ -107,6 +107,19 @@ The BioSample XML structure contains a distinction between:
 - Attributes are captured from nodes like `Id`, `Link`, etc. as well as the <BioSample> nodes themselves.
 - Extracted into the `non_attribute_metadata` table
 
+## Additional resoruces
+- https://genomicsstandardsconsortium.github.io/mixs/
+- https://www.insdc.org/submitting-standards/
+    - https://www.insdc.org/submitting-standards/missing-value-reporting/
+    - https://www.insdc.org/submitting-standards/country-qualifier-vocabulary/
+- https://www.ncbi.nlm.nih.gov/biosample
+    - https://www.ncbi.nlm.nih.gov/biosample/docs/
+    - https://www.ncbi.nlm.nih.gov/biosample/docs/attributes/
+    - https://www.ncbi.nlm.nih.gov/biosample/docs/attributes/?format=xml
+    - https://www.ncbi.nlm.nih.gov/books/NBK169436/
+    - https://submit.ncbi.nlm.nih.gov/biosample/template/
+    - https://www.ncbi.nlm.nih.gov/biosample/docs/packages/
+
 
 # Performance notes
 
