@@ -1,3 +1,8 @@
+_Despite it's name, this repo does not use an XML database_
+
+**See also** attempts to load NCBI Biosample into MongoDB (from which tabular representatiosn could also be extracted)
+- https://github.com/microbiomedata/external-metadata-awareness/blob/main/external_metadata_awareness/xml_to_mongo.py (currently private)
+
 # biosample-xmldb-sqldb
 
 This repository provides an end-to-end pipeline to extract [NCBI BioSample](https://www.ncbi.nlm.nih.gov/biosample) data from XML, transform it, and load into a normalized PostgreSQL database for analytics and project-specific ETL, like instantiating NMDC Biosample objects.
