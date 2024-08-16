@@ -2,6 +2,7 @@ _Despite it's name, this repo does not use an XML database. See older https://gi
 
 **See also** attempts to load NCBI Biosample into MongoDB (from which tabular representatiosn could also be extracted)
 - https://github.com/microbiomedata/external-metadata-awareness/blob/main/external_metadata_awareness/xml_to_mongo.py (currently private)
+- https://gitlab.com/wurssb/insdc_metadata
 
 # biosample-xmldb-sqldb
 
