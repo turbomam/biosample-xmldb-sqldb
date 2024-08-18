@@ -201,6 +201,10 @@ In reality, all three have significant differences in what attributes they expec
     - see assets/path_counts.yaml
     - see assets/curl_biosample_xml_examples.txt
 
+# Additional documentation
+
+- [`./docs`](./docs/)
+
 # TODOs:
 
 _See also https://github.com/turbomam/biosample-xmldb-sqldb/issues_
